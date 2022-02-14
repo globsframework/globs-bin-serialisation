@@ -9,15 +9,17 @@ import org.globsframework.metamodel.GlobTypeLoaderFactory;
 import org.globsframework.metamodel.annotations.Target;
 import org.globsframework.metamodel.fields.GlobField;
 import org.globsframework.metamodel.fields.IntegerField;
+import org.globsframework.metamodel.fields.StringField;
 import org.globsframework.model.Glob;
-import org.globsframework.serialisation.model.FieldNumber_;
+import org.globsframework.serialisation.model.FieldNumber;
+import org.globsframework.serialisation.glob.GlobBinReader;
+import org.globsframework.serialisation.glob.GlobBinWriter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class BinReaderTest extends TestCase {
-
 
     public void testSimpleInt() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
@@ -40,11 +42,12 @@ public class BinReaderTest extends TestCase {
 
     private void check(Glob p, Glob ex) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        BinWriter.GlobWriter binWriter = BinWriter.create().create(byteArrayOutputStream);
+        GlobBinWriter binWriter = BinWriterFactory.create().create(byteArrayOutputStream);
         binWriter.write(p);
 
         GlobType readType = ex.getType();
-        BinReader.GlobBinReader binReader = BinReader.create().create(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        GlobBinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
         Glob r = binReader.read(readType);
 
         Field[] fields = r.getType().getFields();
@@ -57,13 +60,13 @@ public class BinReaderTest extends TestCase {
     public static class Proto1 {
         public static GlobType TYPE;
 
-//        public static StringField strField;
-        @FieldNumber_(1)
+        public static StringField strField;
+        @FieldNumber(1)
         public static IntegerField intField;
 //        public static DoubleField doubleField;
 
         @Target(Proto1.class)
-        @FieldNumber_(2)
+        @FieldNumber(2)
         public static GlobField parent;
 
         static {
