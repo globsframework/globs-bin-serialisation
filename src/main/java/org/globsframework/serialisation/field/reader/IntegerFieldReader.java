@@ -7,8 +7,8 @@ import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
 public class IntegerFieldReader implements FieldReader {
-    private final IntegerField field;
     private int fieldNumber;
+    private final IntegerField field;
 
     public IntegerFieldReader(int fieldNumber, IntegerField field) {
         this.fieldNumber = fieldNumber;

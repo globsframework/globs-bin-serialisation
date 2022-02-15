@@ -15,12 +15,12 @@ public class GlobFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobFieldReader.class);
 
     private final BinReader binReader;
-    private final Integer fNumber;
+    private final Integer fieldNumber;
     private final GlobField field;
 
-    public GlobFieldReader(BinReader binReader, Integer fNumber, GlobField field) {
+    public GlobFieldReader(BinReader binReader, Integer fieldNumber, GlobField field) {
         this.binReader = binReader;
-        this.fNumber = fNumber;
+        this.fieldNumber = fieldNumber;
         this.field = field;
     }
 
@@ -40,6 +40,6 @@ public class GlobFieldReader implements FieldReader {
     }
 
     public int getFieldNumber() {
-        return fNumber;
+        return fieldNumber;
     }
 }

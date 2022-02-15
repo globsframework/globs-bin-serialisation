@@ -13,9 +13,9 @@ public class GlobFieldWriter implements FieldWriter {
     private final int index;
     private final GlobField field;
 
-    public GlobFieldWriter(BinWriter binWriter, int index, GlobField field) {
+    public GlobFieldWriter(BinWriter binWriter, int fieldNumber, GlobField field) {
         this.binWriter = binWriter;
-        this.index = index;
+        this.index = fieldNumber;
         this.field = field;
     }
 
