@@ -9,6 +9,7 @@ import org.globsframework.metamodel.GlobTypeLoaderFactory;
 import org.globsframework.metamodel.annotations.Target;
 import org.globsframework.metamodel.fields.GlobField;
 import org.globsframework.metamodel.fields.IntegerField;
+import org.globsframework.metamodel.fields.LongField;
 import org.globsframework.metamodel.fields.StringField;
 import org.globsframework.model.Glob;
 import org.globsframework.serialisation.model.FieldNumber;
@@ -25,17 +26,34 @@ public class BinReaderTest extends TestCase {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.intField, 2);
         check(p, p);
+
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1.intField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.intField, null);
+        check(withNull, withNull);
+    }
+
+    public void testLong() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.longField, 5L);
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
+                .longField, null);
         check(withNull, withNull);
     }
 
     public void testGlob() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.parent, Proto1.TYPE.instantiate().set(Proto1.intField, 2));
+                .set(Proto1.parent, Proto1.TYPE.instantiate()
+                        .set(Proto1.intField, 2));
         check(p, p);
+
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
     }
@@ -63,10 +81,12 @@ public class BinReaderTest extends TestCase {
         public static StringField strField;
         @FieldNumber(1)
         public static IntegerField intField;
+        @FieldNumber(2)
+        public static LongField longField;
 //        public static DoubleField doubleField;
 
         @Target(Proto1.class)
-        @FieldNumber(2)
+        @FieldNumber(3)
         public static GlobField parent;
 
         static {

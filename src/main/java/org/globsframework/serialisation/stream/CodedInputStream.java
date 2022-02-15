@@ -18,11 +18,7 @@ public class CodedInputStream {
     }
 
     public int readTag() {
-        return serializedInput.readNotNullInt();
-    }
-
-    public String readUtf8String() {
-        return serializedInput.readUtf8String();
+        return readInt();
     }
 
     public void skipField(int tag) {
@@ -31,20 +27,23 @@ public class CodedInputStream {
             case WireConstants.Type.NULL:
                 break;
             case WireConstants.Type.INT:
-                serializedInput.readNotNullInt();
+                readInt();
+                break;
+            case WireConstants.Type.LONG:
+                readLong();
                 break;
             case WireConstants.Type.GLOB:
-                skipGlobField(tag);
+                skipGlobField();
                 break;
             case WireConstants.Type.START_GLOB:
-                serializedInput.readUtf8String();
+                readUtf8String();
                 break;
             default:
                 throw new RuntimeException("type " + type + " not managed yet.");
         }
     }
 
-    private void skipGlobField(int tag) {
+    private void skipGlobField() {
         while (true) {
             int subTag = readTag();
             if (WireConstants.getTagWireType(subTag) == WireConstants.Type.END_GLOB) {
@@ -56,5 +55,13 @@ public class CodedInputStream {
 
     public int readInt() {
         return serializedInput.readNotNullInt();
+    }
+
+    public long readLong() {
+        return serializedInput.readNotNullLong();
+    }
+
+    public String readUtf8String() {
+        return serializedInput.readUtf8String();
     }
 }

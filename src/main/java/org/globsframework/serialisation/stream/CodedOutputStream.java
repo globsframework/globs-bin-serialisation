@@ -26,16 +26,21 @@ public class CodedOutputStream {
         serializedOutput.write(WireConstants.makeTag(0, WireConstants.Type.END_GLOB));
     }
 
-    public void writeNull(int index) {
-        serializedOutput.write(WireConstants.makeTag(index, WireConstants.Type.NULL));
+    public void writeNull(int fieldNumber) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.NULL));
     }
 
-    public void writeInt32(int index, int value) {
-        serializedOutput.write(WireConstants.makeTag(index, WireConstants.Type.INT));
+    public void writeInt32(int fieldNumber, int value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.INT));
         serializedOutput.write(value);
     }
 
-    public void writeGlob(int index) {
-        serializedOutput.write(WireConstants.makeTag(index, WireConstants.Type.GLOB));
+    public void writeLong(int fieldNumber, long value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.LONG));
+        serializedOutput.write(value);
+    }
+
+    public void writeGlob(int fieldNumber) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB));
     }
 }
