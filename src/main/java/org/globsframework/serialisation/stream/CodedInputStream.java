@@ -59,6 +59,9 @@ public class CodedInputStream {
             case WireConstants.Type.BIG_DECIMAL:
                 readBigDecimal();
                 break;
+            case WireConstants.Type.BIG_DECIMAL_ARRAY:
+                readBigDecimalArray();
+                break;
             case WireConstants.Type.STRING:
             case WireConstants.Type.START_GLOB:
                 readUtf8String();

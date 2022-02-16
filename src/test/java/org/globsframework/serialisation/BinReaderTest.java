@@ -65,7 +65,7 @@ public class BinReaderTest extends TestCase {
 
     public void testIntegerArray() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.intArrayField, new int[] {10, 20, 30, 40, 50});
+                .set(Proto1.intArrayField, new int[]{10, 20, 30, 40, 50});
         check(p, p);
 
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
@@ -84,14 +84,14 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .longField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.longField, null);
         check(withNull, withNull);
     }
 
     public void testLongArray() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.longArrayField, new long[] {10L, 20L, 30L, 40L, 50L});
+                .set(Proto1.longArrayField, new long[]{10L, 20L, 30L, 40L, 50L});
         check(p, p);
 
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
@@ -110,14 +110,14 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .doubleField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.doubleField, null);
         check(withNull, withNull);
     }
 
     public void testDoubleArray() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.doubleArrayField, new double[] {10.0, 20.0, 30.0, 40.0, 50.0});
+                .set(Proto1.doubleArrayField, new double[]{10.0, 20.0, 30.0, 40.0, 50.0});
         check(p, p);
 
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
@@ -136,8 +136,25 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .bigDecimalField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.bigDecimalField, null);
+        check(withNull, withNull);
+    }
+
+    public void testBigDecimalArray() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.bigDecimalArrayField, new BigDecimal[]{
+                        BigDecimal.valueOf(10.15),
+                        BigDecimal.valueOf(20.12),
+                        BigDecimal.valueOf(30.18)
+                });
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.bigDecimalArrayField, null);
         check(withNull, withNull);
     }
 
@@ -149,8 +166,8 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .strField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.strField, null);
         check(withNull, withNull);
     }
 
@@ -162,8 +179,8 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .dateField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.dateField, null);
         check(withNull, withNull);
     }
 
@@ -175,8 +192,8 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .dateTimeField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.dateTimeField, null);
         check(withNull, withNull);
     }
 
@@ -188,8 +205,8 @@ public class BinReaderTest extends TestCase {
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
 
-        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
-                .blobField, null);
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.blobField, null);
         check(withNull, withNull);
     }
 
@@ -252,6 +269,8 @@ public class BinReaderTest extends TestCase {
         public static DoubleArrayField doubleArrayField;
         @FieldNumber(9)
         public static BigDecimalField bigDecimalField;
+        @FieldNumber(10)
+        public static BigDecimalArrayField bigDecimalArrayField;
         @FieldNumber(11)
         public static StringField strField;
         @FieldNumber(13)

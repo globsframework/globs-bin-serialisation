@@ -78,6 +78,11 @@ public class CodedOutputStream {
         serializedOutput.write(new BigDecimal[] {value});
     }
 
+    public void writeBigDecimalArray(int fieldNumber, BigDecimal[] value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.BIG_DECIMAL_ARRAY));
+        serializedOutput.write(value);
+    }
+
     public void writeUtf8String(int fieldNumber, String value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.STRING));
         serializedOutput.writeUtf8String(value);
