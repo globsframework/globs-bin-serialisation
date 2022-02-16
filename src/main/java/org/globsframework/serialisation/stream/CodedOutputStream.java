@@ -6,6 +6,7 @@ import org.globsframework.utils.serialization.SerializedOutput;
 
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class CodedOutputStream {
     private SerializedOutput serializedOutput;
@@ -59,6 +60,13 @@ public class CodedOutputStream {
     public void writeUtf8String(int fieldNumber, String value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.STRING));
         serializedOutput.writeUtf8String(value);
+    }
+
+    public void writeLocalDate(int fieldNumber, LocalDate value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DATE));
+        serializedOutput.write(value.getYear());
+        serializedOutput.write(value.getMonthValue());
+        serializedOutput.write(value.getDayOfMonth());
     }
 
     public void writeGlob(int fieldNumber) {

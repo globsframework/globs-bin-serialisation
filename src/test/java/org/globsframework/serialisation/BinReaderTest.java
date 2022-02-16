@@ -17,6 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
 
 public class BinReaderTest extends TestCase {
 
@@ -98,6 +100,19 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testDate() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.dateField, LocalDate.of(2022, Month.FEBRUARY, 16));
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
+                .dateField, null);
+        check(withNull, withNull);
+    }
+
     public void testGlob() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.parent, Proto1.TYPE.instantiate()
@@ -140,6 +155,8 @@ public class BinReaderTest extends TestCase {
         public static BigDecimalField bigDecimalField;
         @FieldNumber(11)
         public static StringField strField;
+        @FieldNumber(13)
+        public static DateField dateField;
 
         @Target(Proto1.class)
         @FieldNumber(20)

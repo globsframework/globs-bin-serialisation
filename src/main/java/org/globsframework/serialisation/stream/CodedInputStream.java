@@ -6,8 +6,11 @@ import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class CodedInputStream {
+    private static final String UTC = "UTC";
+
     private SerializedInput serializedInput;
 
     public CodedInputStream(SerializedInput serializedInput) {
@@ -44,6 +47,9 @@ public class CodedInputStream {
                 break;
             case WireConstants.Type.STRING:
                 readUtf8String();
+                break;
+            case WireConstants.Type.DATE:
+                readLocalDate();
                 break;
             case WireConstants.Type.GLOB:
                 skipGlobField();
@@ -98,5 +104,13 @@ public class CodedInputStream {
 
     public String readUtf8String() {
         return serializedInput.readUtf8String();
+    }
+
+    public LocalDate readLocalDate() {
+        int year = readInt();
+        int month = readInt();
+        int dayOfMonth = readInt();
+
+        return LocalDate.of(year, month, dayOfMonth);
     }
 }

@@ -41,6 +41,10 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldWriters.add(new StringFieldWriter(fieldNumber, field));
     }
 
+    public void visitDate(DateField field) {
+        fieldWriters.add(new DateFieldWriter(fieldNumber, field));
+    }
+
     public void visitGlob(GlobField field) {
         fieldWriters.add(new GlobFieldWriter(binWriter, fieldNumber, field));
     }
