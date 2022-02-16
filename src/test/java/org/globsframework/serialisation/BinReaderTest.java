@@ -58,6 +58,19 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testString() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.strField, "a string");
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
+                .strField, null);
+        check(withNull, withNull);
+    }
+
     public void testGlob() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.parent, Proto1.TYPE.instantiate()
@@ -88,16 +101,17 @@ public class BinReaderTest extends TestCase {
     public static class Proto1 {
         public static GlobType TYPE;
 
-        public static StringField strField;
         @FieldNumber(1)
         public static IntegerField intField;
         @FieldNumber(2)
         public static LongField longField;
         @FieldNumber(3)
         public static DoubleField doubleField;
+        @FieldNumber(10)
+        public static StringField strField;
 
         @Target(Proto1.class)
-        @FieldNumber(4)
+        @FieldNumber(20)
         public static GlobField parent;
 
         static {

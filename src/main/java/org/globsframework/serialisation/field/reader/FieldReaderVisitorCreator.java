@@ -29,6 +29,10 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldReaders.add(new DoubleFieldReader(fieldNumber, field));
     }
 
+    public void visitString(StringField field) {
+        fieldReaders.add(new StringFieldReader(fieldNumber, field));
+    }
+
     public void visitGlob(GlobField field) {
         fieldReaders.add(new GlobFieldReader(binReader, fieldNumber, field));
     }

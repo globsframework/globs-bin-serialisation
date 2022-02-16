@@ -29,6 +29,10 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldWriters.add(new DoubleFieldWriter(fieldNumber, field));
     }
 
+    public void visitString(StringField field) {
+        fieldWriters.add(new StringFieldWriter(fieldNumber, field));
+    }
+
     public void visitGlob(GlobField field) {
         fieldWriters.add(new GlobFieldWriter(binWriter, fieldNumber, field));
     }

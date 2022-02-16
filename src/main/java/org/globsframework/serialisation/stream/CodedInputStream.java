@@ -35,6 +35,9 @@ public class CodedInputStream {
             case WireConstants.Type.DOUBLE:
                 readDouble();
                 break;
+            case WireConstants.Type.STRING:
+                readUtf8String();
+                break;
             case WireConstants.Type.GLOB:
                 skipGlobField();
                 break;

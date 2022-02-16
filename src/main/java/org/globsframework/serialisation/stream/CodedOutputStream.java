@@ -45,6 +45,11 @@ public class CodedOutputStream {
         serializedOutput.write(value);
     }
 
+    public void writeUtf8String(int fieldNumber, String value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.STRING));
+        serializedOutput.writeUtf8String(value);
+    }
+
     public void writeGlob(int fieldNumber) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB));
     }
