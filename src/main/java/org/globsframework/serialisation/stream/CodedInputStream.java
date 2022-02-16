@@ -1,5 +1,6 @@
-package org.globsframework.serialisation;
+package org.globsframework.serialisation.stream;
 
+import org.globsframework.serialisation.WireConstants;
 import org.globsframework.utils.serialization.SerializedInput;
 import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 
