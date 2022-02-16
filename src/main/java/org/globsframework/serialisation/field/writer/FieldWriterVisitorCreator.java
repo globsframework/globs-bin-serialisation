@@ -45,6 +45,10 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldWriters.add(new DoubleFieldWriter(fieldNumber, field));
     }
 
+    public void visitDoubleArray(DoubleArrayField field) {
+        fieldWriters.add(new DoubleArrayFieldWriter(fieldNumber, field));
+    }
+
     public void visitBigDecimal(BigDecimalField field) {
         fieldWriters.add(new BigDecimalFieldWriter(fieldNumber, field));
     }

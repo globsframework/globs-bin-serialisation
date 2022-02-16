@@ -53,6 +53,9 @@ public class CodedInputStream {
             case WireConstants.Type.DOUBLE:
                 readDouble();
                 break;
+            case WireConstants.Type.DOUBLE_ARRAY:
+                readDoubleArray();
+                break;
             case WireConstants.Type.BIG_DECIMAL:
                 readBigDecimal();
                 break;
@@ -113,6 +116,10 @@ public class CodedInputStream {
 
     public double readDouble() {
         return serializedInput.readNotNullDouble();
+    }
+
+    public double[] readDoubleArray() {
+        return serializedInput.readDoubleArray();
     }
 
     public BigDecimal readBigDecimal() {

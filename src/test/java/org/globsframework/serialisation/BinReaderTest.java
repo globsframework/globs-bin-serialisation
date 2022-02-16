@@ -115,6 +115,19 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testDoubleArray() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.doubleArrayField, new double[] {10.0, 20.0, 30.0, 40.0, 50.0});
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.doubleArrayField, null);
+        check(withNull, withNull);
+    }
+
     public void testBigDecimal() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.bigDecimalField, BigDecimal.valueOf(35.12));
@@ -235,6 +248,8 @@ public class BinReaderTest extends TestCase {
         public static LongArrayField longArrayField;
         @FieldNumber(7)
         public static DoubleField doubleField;
+        @FieldNumber(8)
+        public static DoubleArrayField doubleArrayField;
         @FieldNumber(9)
         public static BigDecimalField bigDecimalField;
         @FieldNumber(11)
