@@ -7,10 +7,7 @@ import org.globsframework.metamodel.GlobType;
 import org.globsframework.metamodel.GlobTypeBuilderFactory;
 import org.globsframework.metamodel.GlobTypeLoaderFactory;
 import org.globsframework.metamodel.annotations.Target;
-import org.globsframework.metamodel.fields.GlobField;
-import org.globsframework.metamodel.fields.IntegerField;
-import org.globsframework.metamodel.fields.LongField;
-import org.globsframework.metamodel.fields.StringField;
+import org.globsframework.metamodel.fields.*;
 import org.globsframework.model.Glob;
 import org.globsframework.serialisation.model.FieldNumber;
 import org.globsframework.serialisation.glob.GlobBinReader;
@@ -45,6 +42,19 @@ public class BinReaderTest extends TestCase {
 
         Glob withNull = Proto1.TYPE.instantiate().set(Proto1
                 .longField, null);
+        check(withNull, withNull);
+    }
+
+    public void testDouble() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.doubleField, 10.0);
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
+                .doubleField, null);
         check(withNull, withNull);
     }
 
@@ -83,10 +93,11 @@ public class BinReaderTest extends TestCase {
         public static IntegerField intField;
         @FieldNumber(2)
         public static LongField longField;
-//        public static DoubleField doubleField;
+        @FieldNumber(3)
+        public static DoubleField doubleField;
 
         @Target(Proto1.class)
-        @FieldNumber(3)
+        @FieldNumber(4)
         public static GlobField parent;
 
         static {

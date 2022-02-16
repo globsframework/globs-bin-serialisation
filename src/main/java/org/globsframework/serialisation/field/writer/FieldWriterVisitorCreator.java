@@ -1,9 +1,6 @@
 package org.globsframework.serialisation.field.writer;
 
-import org.globsframework.metamodel.fields.FieldVisitor;
-import org.globsframework.metamodel.fields.GlobField;
-import org.globsframework.metamodel.fields.IntegerField;
-import org.globsframework.metamodel.fields.LongField;
+import org.globsframework.metamodel.fields.*;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 
@@ -26,6 +23,10 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
 
     public void visitLong(LongField field) {
         fieldWriters.add(new LongFieldWriter(fieldNumber, field));
+    }
+
+    public void visitDouble(DoubleField field) {
+        fieldWriters.add(new DoubleFieldWriter(fieldNumber, field));
     }
 
     public void visitGlob(GlobField field) {

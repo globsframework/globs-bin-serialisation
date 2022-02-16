@@ -32,6 +32,9 @@ public class CodedInputStream {
             case WireConstants.Type.LONG:
                 readLong();
                 break;
+            case WireConstants.Type.DOUBLE:
+                readDouble();
+                break;
             case WireConstants.Type.GLOB:
                 skipGlobField();
                 break;
@@ -59,6 +62,10 @@ public class CodedInputStream {
 
     public long readLong() {
         return serializedInput.readNotNullLong();
+    }
+
+    public double readDouble() {
+        return serializedInput.readNotNullDouble();
     }
 
     public String readUtf8String() {
