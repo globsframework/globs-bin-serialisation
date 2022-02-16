@@ -29,6 +29,10 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldReaders.add(new DoubleFieldReader(fieldNumber, field));
     }
 
+    public void visitBigDecimal(BigDecimalField field) {
+        fieldReaders.add(new BigDecimalFieldReader(fieldNumber, field));
+    }
+
     public void visitString(StringField field) {
         fieldReaders.add(new StringFieldReader(fieldNumber, field));
     }

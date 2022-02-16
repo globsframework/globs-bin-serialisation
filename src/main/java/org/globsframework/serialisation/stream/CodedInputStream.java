@@ -5,6 +5,7 @@ import org.globsframework.utils.serialization.SerializedInput;
 import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 
 public class CodedInputStream {
     private SerializedInput serializedInput;
@@ -34,6 +35,9 @@ public class CodedInputStream {
                 break;
             case WireConstants.Type.DOUBLE:
                 readDouble();
+                break;
+            case WireConstants.Type.BIG_DECIMAL:
+                readBigDecimal();
                 break;
             case WireConstants.Type.STRING:
                 readUtf8String();
@@ -69,6 +73,20 @@ public class CodedInputStream {
 
     public double readDouble() {
         return serializedInput.readNotNullDouble();
+    }
+
+    public BigDecimal readBigDecimal() {
+        BigDecimal[] bigDecimals = readBigDecimalArray();
+
+        if (bigDecimals == null || bigDecimals.length == 0) {
+            throw new RuntimeException("cannot read BigDecimal");
+        }
+
+        return bigDecimals[0];
+    }
+
+    public BigDecimal[] readBigDecimalArray() {
+        return serializedInput.readBigDecimaleArray();
     }
 
     public String readUtf8String() {

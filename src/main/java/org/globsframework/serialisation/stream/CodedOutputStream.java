@@ -5,6 +5,7 @@ import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 import org.globsframework.utils.serialization.SerializedOutput;
 
 import java.io.OutputStream;
+import java.math.BigDecimal;
 
 public class CodedOutputStream {
     private SerializedOutput serializedOutput;
@@ -43,6 +44,11 @@ public class CodedOutputStream {
     public void writeDouble(int fieldNumber, double value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DOUBLE));
         serializedOutput.write(value);
+    }
+
+    public void writeBigDecimal(int fieldNumber, BigDecimal value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.BIG_DECIMAL));
+        serializedOutput.write(new BigDecimal[] {value});
     }
 
     public void writeUtf8String(int fieldNumber, String value) {

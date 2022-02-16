@@ -16,6 +16,7 @@ import org.globsframework.serialisation.glob.GlobBinWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 public class BinReaderTest extends TestCase {
 
@@ -55,6 +56,19 @@ public class BinReaderTest extends TestCase {
 
         Glob withNull = Proto1.TYPE.instantiate().set(Proto1
                 .doubleField, null);
+        check(withNull, withNull);
+    }
+
+    public void testBigDecimal() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.bigDecimalField, BigDecimal.valueOf(35.12));
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
+                .bigDecimalField, null);
         check(withNull, withNull);
     }
 
@@ -107,6 +121,8 @@ public class BinReaderTest extends TestCase {
         public static LongField longField;
         @FieldNumber(3)
         public static DoubleField doubleField;
+        @FieldNumber(4)
+        public static BigDecimalField bigDecimalField;
         @FieldNumber(10)
         public static StringField strField;
 
