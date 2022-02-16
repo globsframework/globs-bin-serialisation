@@ -29,6 +29,10 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldReaders.add(new IntegerFieldReader(fieldNumber, field));
     }
 
+    public void visitIntegerArray(IntegerArrayField field) {
+        fieldReaders.add(new IntegerArrayFieldReader(fieldNumber, field));
+    }
+
     public void visitLong(LongField field) {
         fieldReaders.add(new LongFieldReader(fieldNumber, field));
     }

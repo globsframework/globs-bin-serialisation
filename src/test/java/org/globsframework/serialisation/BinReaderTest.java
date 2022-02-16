@@ -50,7 +50,7 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
-    public void testSimpleInt() throws IOException {
+    public void testInteger() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.intField, 2);
         check(p, p);
@@ -60,6 +60,19 @@ public class BinReaderTest extends TestCase {
 
         Glob withNull = Proto1.TYPE.instantiate()
                 .set(Proto1.intField, null);
+        check(withNull, withNull);
+    }
+
+    public void testIntegerArray() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.intArrayField, new int[] {10, 20, 30, 40, 50});
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.intArrayField, null);
         check(withNull, withNull);
     }
 
@@ -201,6 +214,8 @@ public class BinReaderTest extends TestCase {
         public static BooleanArrayField booleanArrayField;
         @FieldNumber(3)
         public static IntegerField intField;
+        @FieldNumber(4)
+        public static IntegerArrayField intArrayField;
         @FieldNumber(5)
         public static LongField longField;
         @FieldNumber(7)

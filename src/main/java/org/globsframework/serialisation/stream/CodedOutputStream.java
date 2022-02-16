@@ -48,6 +48,11 @@ public class CodedOutputStream {
         serializedOutput.write(value);
     }
 
+    public void writeIntArray(int fieldNumber, int[] value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.INT_ARRAY));
+        serializedOutput.write(value);
+    }
+
     public void writeLong(int fieldNumber, long value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.LONG));
         serializedOutput.write(value);

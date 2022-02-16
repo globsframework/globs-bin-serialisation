@@ -26,7 +26,11 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
     }
 
     public void visitInteger(IntegerField field) {
-        fieldWriters.add(new IntFieldWriter(fieldNumber, field));
+        fieldWriters.add(new IntegerFieldWriter(fieldNumber, field));
+    }
+
+    public void visitIntegerArray(IntegerArrayField field) {
+        fieldWriters.add(new IntegerArrayFieldWriter(fieldNumber, field));
     }
 
     public void visitLong(LongField field) {
@@ -37,7 +41,7 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldWriters.add(new DoubleFieldWriter(fieldNumber, field));
     }
 
-    public void visitBigDecimal(BigDecimalField field) throws Exception {
+    public void visitBigDecimal(BigDecimalField field) {
         fieldWriters.add(new BigDecimalFieldWriter(fieldNumber, field));
     }
 

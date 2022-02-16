@@ -41,6 +41,9 @@ public class CodedInputStream {
             case WireConstants.Type.INT:
                 readInt();
                 break;
+            case WireConstants.Type.INT_ARRAY:
+                readIntArray();
+                break;
             case WireConstants.Type.LONG:
                 readLong();
                 break;
@@ -91,6 +94,10 @@ public class CodedInputStream {
 
     public int readInt() {
         return serializedInput.readNotNullInt();
+    }
+
+    public int[] readIntArray() {
+        return serializedInput.readIntArray();
     }
 
     public long readLong() {
