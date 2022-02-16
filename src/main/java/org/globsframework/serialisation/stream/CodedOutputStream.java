@@ -125,4 +125,8 @@ public class CodedOutputStream {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB_ARRAY));
         serializedOutput.write(size);
     }
+
+    public void writeGlobUnion(int fieldNumber) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB_UNION));
+    }
 }

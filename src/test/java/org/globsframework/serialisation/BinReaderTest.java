@@ -6,6 +6,7 @@ import org.globsframework.metamodel.GlobType;
 import org.globsframework.metamodel.GlobTypeBuilderFactory;
 import org.globsframework.metamodel.GlobTypeLoaderFactory;
 import org.globsframework.metamodel.annotations.Target;
+import org.globsframework.metamodel.annotations.Targets;
 import org.globsframework.metamodel.fields.*;
 import org.globsframework.model.Glob;
 import org.globsframework.serialisation.glob.GlobBinReader;
@@ -225,17 +226,21 @@ public class BinReaderTest extends TestCase {
 
     public void testGlob() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.parent, Proto1.TYPE.instantiate()
+                .set(Proto1.globField, Proto1.TYPE.instantiate()
                         .set(Proto1.intField, 2));
         check(p, p);
 
         GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
         check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.globField, null);
+        check(withNull, withNull);
     }
 
     public void testGlobArray() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.parents, new Glob[]{
+                .set(Proto1.globArrayField, new Glob[]{
                         Proto1.TYPE.instantiate()
                                 .set(Proto1.intField, 2)
                 });
@@ -245,7 +250,21 @@ public class BinReaderTest extends TestCase {
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
-                .set(Proto1.parents, null);
+                .set(Proto1.globArrayField, null);
+        check(withNull, withNull);
+    }
+
+    public void testGlobUnion() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.globUnionField, Proto1.TYPE.instantiate()
+                        .set(Proto1.intField, 2));
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.globUnionField, null);
         check(withNull, withNull);
     }
 
@@ -313,11 +332,15 @@ public class BinReaderTest extends TestCase {
 
         @Target(Proto1.class)
         @FieldNumber(16)
-        public static GlobField parent;
+        public static GlobField globField;
 
         @Target(Proto1.class)
         @FieldNumber(17)
-        public static GlobArrayField parents;
+        public static GlobArrayField globArrayField;
+
+        @Targets({Proto1.class})
+        @FieldNumber(18)
+        public static GlobUnionField globUnionField;
 
         static {
             GlobTypeLoaderFactory.create(Proto1.class).load();

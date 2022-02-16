@@ -79,6 +79,7 @@ public class CodedInputStream {
                 readBytes();
                 break;
             case WireConstants.Type.GLOB:
+            case WireConstants.Type.GLOB_UNION:
                 skipGlobField();
                 break;
             case WireConstants.Type.GLOB_ARRAY:
