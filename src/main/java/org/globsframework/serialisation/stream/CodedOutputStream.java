@@ -58,6 +58,11 @@ public class CodedOutputStream {
         serializedOutput.write(value);
     }
 
+    public void writeLongArray(int fieldNumber, long[] value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.LONG_ARRAY));
+        serializedOutput.write(value);
+    }
+
     public void writeDouble(int fieldNumber, double value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DOUBLE));
         serializedOutput.write(value);
