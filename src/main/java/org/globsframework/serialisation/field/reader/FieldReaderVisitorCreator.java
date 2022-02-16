@@ -45,6 +45,10 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldReaders.add(new DateFieldReader(fieldNumber, field));
     }
 
+    public void visitDateTime(DateTimeField field) {
+        fieldReaders.add(new DateTimeFieldReader(fieldNumber, field));
+    }
+
     public void visitGlob(GlobField field) {
         fieldReaders.add(new GlobFieldReader(binReader, fieldNumber, field));
     }

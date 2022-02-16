@@ -7,6 +7,7 @@ import org.globsframework.utils.serialization.SerializedOutput;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 public class CodedOutputStream {
     private SerializedOutput serializedOutput;
@@ -67,6 +68,18 @@ public class CodedOutputStream {
         serializedOutput.write(value.getYear());
         serializedOutput.write(value.getMonthValue());
         serializedOutput.write(value.getDayOfMonth());
+    }
+
+    public void writeZonedDateTime(int fieldNumber, ZonedDateTime value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DATE_TIME));
+        serializedOutput.write(value.getYear());
+        serializedOutput.write(value.getMonthValue());
+        serializedOutput.write(value.getDayOfMonth());
+        serializedOutput.write(value.getHour());
+        serializedOutput.write(value.getMinute());
+        serializedOutput.write(value.getSecond());
+        serializedOutput.write(value.getNano());
+        serializedOutput.writeUtf8String(value.getZone().getId());
     }
 
     public void writeGlob(int fieldNumber) {

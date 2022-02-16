@@ -7,6 +7,8 @@ import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 public class CodedInputStream {
     private static final String UTC = "UTC";
@@ -46,16 +48,17 @@ public class CodedInputStream {
                 readBigDecimal();
                 break;
             case WireConstants.Type.STRING:
+            case WireConstants.Type.START_GLOB:
                 readUtf8String();
                 break;
             case WireConstants.Type.DATE:
                 readLocalDate();
                 break;
+            case WireConstants.Type.DATE_TIME:
+                readZonedDateTime();
+                break;
             case WireConstants.Type.GLOB:
                 skipGlobField();
-                break;
-            case WireConstants.Type.START_GLOB:
-                readUtf8String();
                 break;
             default:
                 throw new RuntimeException("type " + type + " not managed yet.");
@@ -112,5 +115,18 @@ public class CodedInputStream {
         int dayOfMonth = readInt();
 
         return LocalDate.of(year, month, dayOfMonth);
+    }
+
+    public ZonedDateTime readZonedDateTime() {
+        int year = readInt();
+        int month = readInt();
+        int dayOfMonth = readInt();
+        int hour = readInt();
+        int minute = readInt();
+        int second = readInt();
+        int nanoOfSecond = readInt();
+        ZoneId zoneId = ZoneId.of(readUtf8String());
+
+        return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond, zoneId);
     }
 }
