@@ -21,6 +21,10 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldReaders.add(new BooleanFieldReader(fieldNumber, field));
     }
 
+    public void visitBooleanArray(BooleanArrayField field) {
+        fieldReaders.add(new BooleanArrayFieldReader(fieldNumber, field));
+    }
+
     public void visitInteger(IntegerField field) {
         fieldReaders.add(new IntegerFieldReader(fieldNumber, field));
     }

@@ -38,6 +38,11 @@ public class CodedOutputStream {
         serializedOutput.write(value);
     }
 
+    public void writeBooleanArray(int fieldNumber, boolean[] value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.BOOLEAN_ARRAY));
+        serializedOutput.write(value);
+    }
+
     public void writeInt32(int fieldNumber, int value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.INT));
         serializedOutput.write(value);

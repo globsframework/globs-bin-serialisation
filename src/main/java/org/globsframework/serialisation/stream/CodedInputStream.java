@@ -35,6 +35,9 @@ public class CodedInputStream {
             case WireConstants.Type.BOOLEAN:
                 readBoolean();
                 break;
+            case WireConstants.Type.BOOLEAN_ARRAY:
+                readBooleanArray();
+                break;
             case WireConstants.Type.INT:
                 readInt();
                 break;
@@ -80,6 +83,10 @@ public class CodedInputStream {
 
     public boolean readBoolean() {
         return serializedInput.readBoolean();
+    }
+
+    public boolean[] readBooleanArray() {
+        return serializedInput.readBooleanArray();
     }
 
     public int readInt() {
