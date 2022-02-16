@@ -17,6 +17,10 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         this.fieldWriters = fieldWriters;
     }
 
+    public void visitBoolean(BooleanField field) {
+        fieldWriters.add(new BooleanFieldWriter(fieldNumber, field));
+    }
+
     public void visitInteger(IntegerField field) {
         fieldWriters.add(new IntFieldWriter(fieldNumber, field));
     }

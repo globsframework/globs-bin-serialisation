@@ -31,6 +31,11 @@ public class CodedOutputStream {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.NULL));
     }
 
+    public void writeBoolean(int fieldNumber, boolean value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.BOOLEAN));
+        serializedOutput.write(value);
+    }
+
     public void writeInt32(int fieldNumber, int value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.INT));
         serializedOutput.write(value);

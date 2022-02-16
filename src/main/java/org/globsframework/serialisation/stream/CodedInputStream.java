@@ -27,6 +27,9 @@ public class CodedInputStream {
         switch (type) {
             case WireConstants.Type.NULL:
                 break;
+            case WireConstants.Type.BOOLEAN:
+                readBoolean();
+                break;
             case WireConstants.Type.INT:
                 readInt();
                 break;
@@ -61,6 +64,10 @@ public class CodedInputStream {
             }
             skipField(subTag);
         }
+    }
+
+    public boolean readBoolean() {
+        return serializedInput.readBoolean();
     }
 
     public int readInt() {

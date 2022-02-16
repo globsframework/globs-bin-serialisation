@@ -20,6 +20,19 @@ import java.math.BigDecimal;
 
 public class BinReaderTest extends TestCase {
 
+    public void testBoolean() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.booleanField, true);
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.booleanField, null);
+        check(withNull, withNull);
+    }
+
     public void testSimpleInt() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.intField, 2);
@@ -116,14 +129,16 @@ public class BinReaderTest extends TestCase {
         public static GlobType TYPE;
 
         @FieldNumber(1)
-        public static IntegerField intField;
-        @FieldNumber(2)
-        public static LongField longField;
+        public static BooleanField booleanField;
         @FieldNumber(3)
+        public static IntegerField intField;
+        @FieldNumber(5)
+        public static LongField longField;
+        @FieldNumber(7)
         public static DoubleField doubleField;
-        @FieldNumber(4)
+        @FieldNumber(9)
         public static BigDecimalField bigDecimalField;
-        @FieldNumber(10)
+        @FieldNumber(11)
         public static StringField strField;
 
         @Target(Proto1.class)
