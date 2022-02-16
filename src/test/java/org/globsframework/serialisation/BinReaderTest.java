@@ -268,6 +268,24 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testGlobArrayUnion() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayUnionField, new Glob[]{
+                        Proto1.TYPE.instantiate()
+                                .set(Proto1.intField, 2),
+                        Proto2.TYPE.instantiate()
+                                .set(Proto2.booleanField, true)
+                });
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayField, null);
+        check(withNull, withNull);
+    }
+
     private void check(Glob p, Glob ex) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         GlobBinWriter binWriter = BinWriterFactory.create().create(byteArrayOutputStream);
@@ -338,12 +356,27 @@ public class BinReaderTest extends TestCase {
         @FieldNumber(17)
         public static GlobArrayField globArrayField;
 
-        @Targets({Proto1.class})
+        @Targets({Proto1.class, Proto2.class})
         @FieldNumber(18)
         public static GlobUnionField globUnionField;
 
+        @Targets({Proto1.class, Proto2.class})
+        @FieldNumber(19)
+        public static GlobArrayUnionField globArrayUnionField;
+
         static {
             GlobTypeLoaderFactory.create(Proto1.class).load();
+        }
+    }
+
+    public static class Proto2 {
+        public static GlobType TYPE;
+
+        @FieldNumber(1)
+        public static BooleanField booleanField;
+
+        static {
+            GlobTypeLoaderFactory.create(Proto2.class).load();
         }
     }
 }

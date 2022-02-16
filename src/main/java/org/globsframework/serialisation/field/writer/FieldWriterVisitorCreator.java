@@ -88,4 +88,8 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
     public void visitUnionGlob(GlobUnionField field) {
         fieldWriters.add(new GlobUnionFieldWriter(binWriter, fieldNumber, field));
     }
+
+    public void visitUnionGlobArray(GlobArrayUnionField field) {
+        fieldWriters.add(new GlobArrayUnionFieldWriter(binWriter, fieldNumber, field));
+    }
 }

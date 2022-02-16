@@ -129,4 +129,9 @@ public class CodedOutputStream {
     public void writeGlobUnion(int fieldNumber) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB_UNION));
     }
+
+    public void writeGlobArrayUnion(int fieldNumber, int size) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB_UNION_ARRAY));
+        serializedOutput.write(size);
+    }
 }
