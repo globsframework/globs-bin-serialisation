@@ -1,6 +1,5 @@
 package org.globsframework.serialisation;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.globsframework.metamodel.Field;
 import org.globsframework.metamodel.GlobType;
@@ -16,7 +15,9 @@ import org.globsframework.serialisation.model.FieldNumber;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
@@ -127,6 +128,19 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testBlob() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.blobField, "blabla".getBytes(StandardCharsets.UTF_8));
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate().set(Proto1
+                .blobField, null);
+        check(withNull, withNull);
+    }
+
     public void testGlob() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.parent, Proto1.TYPE.instantiate()
@@ -149,8 +163,19 @@ public class BinReaderTest extends TestCase {
 
         Field[] fields = r.getType().getFields();
         for (Field field : fields) {
-            Assert.assertEquals(ex.isSet(field), r.isSet(field));
-            Assert.assertEquals(ex.getValue(field), r.getValue(field));
+            assertEquals(ex.isSet(field), r.isSet(field));
+            Object value1 = ex.getValue(field);
+            Object value2 = r.getValue(field);
+
+            if (value1 != null && value2 != null && value1.getClass().isArray() && value2.getClass().isArray()) {
+                // compare arrays
+                assertEquals(Array.getLength(value1), Array.getLength(value2));
+                for (int index = 0; index < Array.getLength(value1); index++) {
+                    assertEquals(Array.get(value1, index), Array.get(value2, index));
+                }
+            } else {
+                assertEquals(value1, r.getValue(field));
+            }
         }
     }
 
@@ -173,9 +198,11 @@ public class BinReaderTest extends TestCase {
         public static DateField dateField;
         @FieldNumber(14)
         public static DateTimeField dateTimeField;
+        @FieldNumber(15)
+        public static BlobField blobField;
 
         @Target(Proto1.class)
-        @FieldNumber(20)
+        @FieldNumber(16)
         public static GlobField parent;
 
         static {

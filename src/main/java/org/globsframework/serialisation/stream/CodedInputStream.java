@@ -57,6 +57,9 @@ public class CodedInputStream {
             case WireConstants.Type.DATE_TIME:
                 readZonedDateTime();
                 break;
+            case WireConstants.Type.BYTES:
+                readBytes();
+                break;
             case WireConstants.Type.GLOB:
                 skipGlobField();
                 break;
@@ -128,5 +131,9 @@ public class CodedInputStream {
         ZoneId zoneId = ZoneId.of(readUtf8String());
 
         return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond, zoneId);
+    }
+
+    public byte[] readBytes() {
+        return serializedInput.readBytes();
     }
 }
