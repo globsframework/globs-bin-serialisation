@@ -66,6 +66,9 @@ public class CodedInputStream {
             case WireConstants.Type.START_GLOB:
                 readUtf8String();
                 break;
+            case WireConstants.Type.STRING_ARRAY:
+                readStringArray();
+                break;
             case WireConstants.Type.DATE:
                 readLocalDate();
                 break;
@@ -141,6 +144,10 @@ public class CodedInputStream {
 
     public String readUtf8String() {
         return serializedInput.readUtf8String();
+    }
+
+    public String[] readStringArray() {
+        return serializedInput.readStringArray();
     }
 
     public LocalDate readLocalDate() {

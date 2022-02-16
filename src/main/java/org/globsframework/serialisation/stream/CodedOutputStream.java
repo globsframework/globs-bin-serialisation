@@ -88,6 +88,11 @@ public class CodedOutputStream {
         serializedOutput.writeUtf8String(value);
     }
 
+    public void writeStringArray(int fieldNumber, String[] value) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.STRING_ARRAY));
+        serializedOutput.write(value);
+    }
+
     public void writeLocalDate(int fieldNumber, LocalDate value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DATE));
         serializedOutput.write(value.getYear());

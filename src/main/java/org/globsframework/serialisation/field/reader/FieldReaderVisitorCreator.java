@@ -61,6 +61,10 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldReaders.add(new StringFieldReader(fieldNumber, field));
     }
 
+    public void visitStringArray(StringArrayField field) {
+        fieldReaders.add(new StringArrayFieldReader(fieldNumber, field));
+    }
+
     public void visitDate(DateField field) {
         fieldReaders.add(new DateFieldReader(fieldNumber, field));
     }

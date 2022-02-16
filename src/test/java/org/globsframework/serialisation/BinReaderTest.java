@@ -171,6 +171,19 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testStringArray() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.strArrayField, new String[]{"first string", "second string", "third string"});
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.strArrayField, null);
+        check(withNull, withNull);
+    }
+
     public void testDate() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.dateField, LocalDate.of(2022, Month.FEBRUARY, 16));
@@ -273,6 +286,8 @@ public class BinReaderTest extends TestCase {
         public static BigDecimalArrayField bigDecimalArrayField;
         @FieldNumber(11)
         public static StringField strField;
+        @FieldNumber(12)
+        public static StringArrayField strArrayField;
         @FieldNumber(13)
         public static DateField dateField;
         @FieldNumber(14)
