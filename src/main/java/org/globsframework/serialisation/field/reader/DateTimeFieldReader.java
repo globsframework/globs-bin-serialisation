@@ -7,7 +7,7 @@ import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
 public class DateTimeFieldReader implements FieldReader {
-    private int fieldNumber;
+    private final int fieldNumber;
     private final DateTimeField field;
 
     public DateTimeFieldReader(int fieldNumber, DateTimeField field) {
@@ -24,7 +24,7 @@ public class DateTimeFieldReader implements FieldReader {
                 data.set(field, inputStream.readZonedDateTime());
                 break;
             default:
-                throw new RuntimeException("For " + field.getName() + " unexpected type " + tagWireType);
+                defaultReadCase(field.getName(), tagWireType);
         }
     }
 

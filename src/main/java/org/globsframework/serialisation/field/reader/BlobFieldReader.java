@@ -7,7 +7,7 @@ import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
 public class BlobFieldReader implements FieldReader {
-    private int fieldNumber;
+    private final int fieldNumber;
     private final BlobField field;
 
     public BlobFieldReader(int fieldNumber, BlobField field) {
@@ -24,7 +24,7 @@ public class BlobFieldReader implements FieldReader {
                 data.set(field, inputStream.readBytes());
                 break;
             default:
-                throw new RuntimeException("For " + field.getName() + " unexpected type " + tagWireType);
+                defaultReadCase(field.getName(), tagWireType);
         }
     }
 
