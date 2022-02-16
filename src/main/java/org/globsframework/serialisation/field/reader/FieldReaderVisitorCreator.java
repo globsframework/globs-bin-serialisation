@@ -80,4 +80,8 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
     public void visitGlob(GlobField field) {
         fieldReaders.add(new GlobFieldReader(binReader, fieldNumber, field));
     }
+
+    public void visitGlobArray(GlobArrayField field) {
+        fieldReaders.add(new GlobArrayFieldReader(binReader, fieldNumber, field));
+    }
 }

@@ -233,6 +233,22 @@ public class BinReaderTest extends TestCase {
         check(p, globType.instantiate());
     }
 
+    public void testGlobArray() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.parents, new Glob[]{
+                        Proto1.TYPE.instantiate()
+                                .set(Proto1.intField, 2)
+                });
+        check(p, p);
+
+        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.parents, null);
+        check(withNull, withNull);
+    }
+
     private void check(Glob p, Glob ex) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         GlobBinWriter binWriter = BinWriterFactory.create().create(byteArrayOutputStream);
@@ -298,6 +314,10 @@ public class BinReaderTest extends TestCase {
         @Target(Proto1.class)
         @FieldNumber(16)
         public static GlobField parent;
+
+        @Target(Proto1.class)
+        @FieldNumber(17)
+        public static GlobArrayField parents;
 
         static {
             GlobTypeLoaderFactory.create(Proto1.class).load();

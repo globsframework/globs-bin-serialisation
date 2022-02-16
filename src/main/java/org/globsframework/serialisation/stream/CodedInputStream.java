@@ -81,6 +81,12 @@ public class CodedInputStream {
             case WireConstants.Type.GLOB:
                 skipGlobField();
                 break;
+            case WireConstants.Type.GLOB_ARRAY:
+                int size = readInt();
+                for (int index = 0; index < size; index++) {
+                    skipGlobField();
+                }
+                break;
             default:
                 throw new RuntimeException("type " + type + " not managed yet.");
         }

@@ -120,4 +120,9 @@ public class CodedOutputStream {
     public void writeGlob(int fieldNumber) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB));
     }
+
+    public void writeGlobArray(int fieldNumber, int size) {
+        serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.GLOB_ARRAY));
+        serializedOutput.write(size);
+    }
 }
