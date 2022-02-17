@@ -147,7 +147,7 @@ public class CodedInputStream {
     }
 
     public BigDecimal[] readBigDecimalArray() {
-        return serializedInput.readBigDecimaleArray();
+        return serializedInput.readBigDecimalArray();
     }
 
     public String readUtf8String() {
