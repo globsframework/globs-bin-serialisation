@@ -13,6 +13,8 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
 
 import static org.globsframework.serialisation.WireConstants.Type.END_GLOB;
 
@@ -28,19 +30,20 @@ public class GlobBinReader implements BinReader {
     }
 
     public Glob read(GlobType globType) throws IOException {
+        return read(List.of(globType));
+    }
+
+    public Glob read(Collection<GlobType> globTypes) throws IOException {
         int tag = inputStream.readTag();
         if (WireConstants.getTagWireType(tag) != WireConstants.Type.START_GLOB) {
             throw new RuntimeException("Expecting Glob but got " + tag + " : " + WireConstants.getTagWireType(tag));
         }
 
         String typeName = inputStream.readUtf8String();
-        if (!globType.getName().equals(typeName)) {
-            throw new RuntimeException("Expecting " + globType.getName() + " but found " + typeName);
-        }
-
-        if (!globType.getName().equals(typeName)) {
-            throw new RuntimeException("Expecting " + globType.getName() + " but found " + typeName);
-        }
+        GlobType globType = globTypes.stream()
+                .filter(gType -> gType.getName().equals(typeName))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Expecting " + globTypes + " but found " + typeName));
 
         GlobTypeFieldReaders globTypeFieldReaders = globTypeFieldReadersManager.getOrCreate(
                 globType, globTypeFieldReadersFactory);

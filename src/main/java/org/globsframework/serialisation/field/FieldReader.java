@@ -9,4 +9,8 @@ public interface FieldReader {
     void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) throws IOException;
 
     int getFieldNumber();
+
+    default void defaultReadCase(String fieldName, int tagWireType) {
+        throw new RuntimeException("For " + fieldName + " unexpected type " + tagWireType);
+    }
 }

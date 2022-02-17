@@ -1,16 +1,16 @@
 package org.globsframework.serialisation.field.reader;
 
-import org.globsframework.metamodel.fields.IntegerField;
+import org.globsframework.metamodel.fields.BigDecimalArrayField;
 import org.globsframework.model.MutableGlob;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public class IntegerFieldReader implements FieldReader {
+public class BigDecimalArrayFieldReader implements FieldReader {
     private final int fieldNumber;
-    private final IntegerField field;
+    private final BigDecimalArrayField field;
 
-    public IntegerFieldReader(int fieldNumber, IntegerField field) {
+    public BigDecimalArrayFieldReader(int fieldNumber, BigDecimalArrayField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
     }
@@ -20,8 +20,8 @@ public class IntegerFieldReader implements FieldReader {
             case WireConstants.Type.NULL:
                 data.set(field, null);
                 break;
-            case WireConstants.Type.INT:
-                data.set(field, inputStream.readInt());
+            case WireConstants.Type.BIG_DECIMAL_ARRAY:
+                data.set(field, inputStream.readBigDecimalArray());
                 break;
             default:
                 defaultReadCase(field.getName(), tagWireType);

@@ -7,7 +7,12 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 public class NullFieldWriter implements FieldWriter {
     public static final NullFieldWriter INSTANCE = new NullFieldWriter();
 
+    private NullFieldWriter() {
+        // empty constructor
+    }
+
     public void write(CodedOutputStream codedOutputStream, Glob data) {
+        // do nothing
     }
 
     public int getFieldNumber() {
