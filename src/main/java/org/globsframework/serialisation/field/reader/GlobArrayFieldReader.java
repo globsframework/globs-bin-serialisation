@@ -1,5 +1,6 @@
 package org.globsframework.serialisation.field.reader;
 
+import org.globsframework.metamodel.GlobTypeResolver;
 import org.globsframework.metamodel.fields.GlobArrayField;
 import org.globsframework.model.Glob;
 import org.globsframework.model.MutableGlob;
@@ -16,18 +17,17 @@ import java.util.List;
 
 public class GlobArrayFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayFieldReader.class);
-
-    private final BinReader binReader;
     private final Integer fieldNumber;
     private final GlobArrayField field;
+    private final GlobTypeResolver resolver;
 
-    public GlobArrayFieldReader(BinReader binReader, Integer fieldNumber, GlobArrayField field) {
-        this.binReader = binReader;
+    public GlobArrayFieldReader(Integer fieldNumber, GlobArrayField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
+        resolver = GlobTypeResolver.from(field.getGlobType());
     }
 
-    public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) throws IOException {
+    public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
         switch (tagWireType) {
             case WireConstants.Type.NULL:
                 data.set(field, null);
@@ -36,9 +36,11 @@ public class GlobArrayFieldReader implements FieldReader {
                 List<Glob> globs = new ArrayList<>();
                 int size = inputStream.readInt();
                 for (int index = 0; index < size; index++) {
-                    globs.add(binReader.read(field.getTargetType()));
+                    inputStream
+                            .readGlob(resolver)
+                            .ifPresent(globs::add);
                 }
-                data.set(field, globs.toArray(new Glob[size]));
+                data.set(field, globs.toArray(new Glob[globs.size()]));
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

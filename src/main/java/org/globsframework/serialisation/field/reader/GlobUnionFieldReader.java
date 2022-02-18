@@ -1,6 +1,9 @@
 package org.globsframework.serialisation.field.reader;
 
+import org.globsframework.metamodel.GlobType;
+import org.globsframework.metamodel.GlobTypeResolver;
 import org.globsframework.metamodel.fields.GlobUnionField;
+import org.globsframework.model.Glob;
 import org.globsframework.model.MutableGlob;
 import org.globsframework.serialisation.BinReader;
 import org.globsframework.serialisation.WireConstants;
@@ -10,27 +13,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class GlobUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobUnionFieldReader.class);
-
-    private final BinReader binReader;
     private final Integer fieldNumber;
     private final GlobUnionField field;
+    private final GlobTypeResolver resolver;
 
-    public GlobUnionFieldReader(BinReader binReader, Integer fieldNumber, GlobUnionField field) {
-        this.binReader = binReader;
+    public GlobUnionFieldReader(Integer fieldNumber, GlobUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
+        resolver = GlobTypeResolver.from(field.getTargetTypes());
     }
 
-    public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) throws IOException {
+    public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
         switch (tagWireType) {
             case WireConstants.Type.NULL:
                 data.set(field, null);
                 break;
             case WireConstants.Type.GLOB_UNION:
-                data.set(field, binReader.read(field.getTargetTypes()));
+                inputStream.readGlob(resolver).ifPresent(glob -> data.set(field, glob));
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

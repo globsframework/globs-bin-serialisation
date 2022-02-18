@@ -24,7 +24,7 @@ public class GlobBinWriter implements BinWriter {
         this.globTypeFieldWritersFactory = new DefaultGlobTypeFieldWritersFactory(this);
     }
 
-    public void write(Glob glob) throws IOException {
+    public void write(Glob glob) {
         GlobType globType = glob.getType();
 
         GlobTypeFieldWriters globTypeFieldWriters = globTypeFieldWritersManager.getOrCreate(

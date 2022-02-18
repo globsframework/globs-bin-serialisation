@@ -1,10 +1,7 @@
 package org.globsframework.serialisation;
 
 import junit.framework.TestCase;
-import org.globsframework.metamodel.Field;
-import org.globsframework.metamodel.GlobType;
-import org.globsframework.metamodel.GlobTypeBuilderFactory;
-import org.globsframework.metamodel.GlobTypeLoaderFactory;
+import org.globsframework.metamodel.*;
 import org.globsframework.metamodel.annotations.Target;
 import org.globsframework.metamodel.annotations.Targets;
 import org.globsframework.metamodel.fields.*;
@@ -293,8 +290,8 @@ public class BinReaderTest extends TestCase {
 
         GlobType readType = ex.getType();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        GlobBinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
-        Glob r = binReader.read(readType);
+        GlobBinReader binReader = BinReaderFactory.create().createGlobBinReader(GlobTypeResolver.from(readType));
+        Glob r = binReader.read(inputStream).get();
 
         Field[] fields = r.getType().getFields();
         for (Field field : fields) {

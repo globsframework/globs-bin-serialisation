@@ -40,5 +40,4 @@ public class WireConstants {
         public static final int GLOB_UNION = 22;
         public static final int GLOB_UNION_ARRAY = 23;
     }
-
 }

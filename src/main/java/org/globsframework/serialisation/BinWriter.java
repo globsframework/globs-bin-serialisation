@@ -6,6 +6,6 @@ import java.io.IOException;
 
 public interface BinWriter {
 
-    void write(Glob glob) throws IOException;
+    void write(Glob glob);
 
 }

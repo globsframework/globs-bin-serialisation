@@ -1,6 +1,12 @@
 package org.globsframework.serialisation.stream;
 
+import org.globsframework.metamodel.GlobType;
+import org.globsframework.metamodel.GlobTypeResolver;
+import org.globsframework.model.Glob;
+import org.globsframework.model.MutableGlob;
 import org.globsframework.serialisation.WireConstants;
+import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
+import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
 import org.globsframework.utils.serialization.SerializedInput;
 import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 
@@ -9,18 +15,22 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Optional;
+
+import static org.globsframework.serialisation.WireConstants.Type.END_GLOB;
 
 public class CodedInputStream {
     private static final String UTC = "UTC";
-
+    private GlobTypeFieldReadersManager globTypeFieldReadersManager;
     private SerializedInput serializedInput;
 
-    public CodedInputStream(SerializedInput serializedInput) {
+    public CodedInputStream(GlobTypeFieldReadersManager globTypeFieldReadersManager, SerializedInput serializedInput) {
+        this.globTypeFieldReadersManager = globTypeFieldReadersManager;
         this.serializedInput = serializedInput;
     }
 
-    public static CodedInputStream newInstance(InputStream inputStream) {
-        return new CodedInputStream(SerializedInputOutputFactory.init(inputStream));
+    public static CodedInputStream newInstance(GlobTypeFieldReadersManager globTypeFieldReadersManager, InputStream inputStream) {
+        return new CodedInputStream(globTypeFieldReadersManager, SerializedInputOutputFactory.init(inputStream));
     }
 
     public int readTag() {
@@ -181,5 +191,43 @@ public class CodedInputStream {
 
     public byte[] readBytes() {
         return serializedInput.readBytes();
+    }
+
+    public Optional<Glob> readGlob(GlobTypeResolver typeResolver) {
+        int tag = readTag();
+        if (WireConstants.getTagWireType(tag) != WireConstants.Type.START_GLOB) {
+            throw new RuntimeException("Expecting Glob but got " + tag + " : " + WireConstants.getTagWireType(tag));
+        }
+
+        String typeName = readUtf8String();
+        Optional<GlobType> globTypeOpt = typeResolver.find(typeName);
+
+        if (globTypeOpt.isPresent()) {
+            GlobType globType = globTypeOpt.get();
+            GlobTypeFieldReaders globTypeFieldReaders = globTypeFieldReadersManager.getOrCreate(globType);
+            MutableGlob data = globType.instantiate();
+            while (true) {
+                int fieldTag = readTag();
+                int fieldNumber = WireConstants.getTagFieldNumber(fieldTag);
+                int tagWireType = WireConstants.getTagWireType(fieldTag);
+
+                if (tagWireType == END_GLOB) {
+                    return Optional.of(data);
+                }
+
+                globTypeFieldReaders.get(fieldNumber)
+                        .read(data, fieldTag, tagWireType, this);
+            }
+        } else {
+            while (true) {
+                int fieldTag = readTag();
+                int tagWireType = WireConstants.getTagWireType(fieldTag);
+
+                if (tagWireType == END_GLOB) {
+                    return Optional.empty();
+                }
+                skipField(tag);
+            }
+        }
     }
 }

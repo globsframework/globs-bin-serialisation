@@ -1,18 +1,15 @@
 package org.globsframework.serialisation.field.reader;
 
 import org.globsframework.metamodel.fields.*;
-import org.globsframework.serialisation.BinReader;
 import org.globsframework.serialisation.field.FieldReader;
 
 import java.util.List;
 
 public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor {
-    private final BinReader binReader;
     private final int fieldNumber;
     private final List<FieldReader> fieldReaders;
 
-    public FieldReaderVisitorCreator(BinReader binReader, int fieldNumber, List<FieldReader> fieldReaders) {
-        this.binReader = binReader;
+    public FieldReaderVisitorCreator(int fieldNumber, List<FieldReader> fieldReaders) {
         this.fieldNumber = fieldNumber;
         this.fieldReaders = fieldReaders;
     }
@@ -78,18 +75,18 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
     }
 
     public void visitGlob(GlobField field) {
-        fieldReaders.add(new GlobFieldReader(binReader, fieldNumber, field));
+        fieldReaders.add(new GlobFieldReader(fieldNumber, field));
     }
 
     public void visitGlobArray(GlobArrayField field) {
-        fieldReaders.add(new GlobArrayFieldReader(binReader, fieldNumber, field));
+        fieldReaders.add(new GlobArrayFieldReader(fieldNumber, field));
     }
 
     public void visitUnionGlob(GlobUnionField field) {
-        fieldReaders.add(new GlobUnionFieldReader(binReader, fieldNumber, field));
+        fieldReaders.add(new GlobUnionFieldReader(fieldNumber, field));
     }
 
     public void visitUnionGlobArray(GlobArrayUnionField field) {
-        fieldReaders.add(new GlobArrayUnionFieldReader(binReader, fieldNumber, field));
+        fieldReaders.add(new GlobArrayUnionFieldReader(fieldNumber, field));
     }
 }

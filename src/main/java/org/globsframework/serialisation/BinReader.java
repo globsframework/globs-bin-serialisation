@@ -1,15 +1,13 @@
 package org.globsframework.serialisation;
 
-import org.globsframework.metamodel.GlobType;
 import org.globsframework.model.Glob;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.io.InputStream;
+import java.util.Optional;
 
 public interface BinReader {
 
-    Glob read(GlobType globType) throws IOException;
+    Optional<Glob> read(InputStream inputStream);
 
-    Glob read(Collection<GlobType> globTypes) throws IOException;
-
+    Glob[] readArray(InputStream inputStream);
 }

@@ -6,7 +6,7 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 import java.io.IOException;
 
 public interface FieldWriter {
-    void write(CodedOutputStream codedOutputStream, Glob data) throws IOException;
+    void write(CodedOutputStream codedOutputStream, Glob data);
 
     int getFieldNumber();
 }

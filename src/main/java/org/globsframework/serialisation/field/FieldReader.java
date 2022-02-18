@@ -6,7 +6,7 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 import java.io.IOException;
 
 public interface FieldReader {
-    void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) throws IOException;
+    void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream);
 
     int getFieldNumber();
 

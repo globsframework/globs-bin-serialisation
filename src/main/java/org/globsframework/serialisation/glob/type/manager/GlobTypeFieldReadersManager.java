@@ -2,10 +2,11 @@ package org.globsframework.serialisation.glob.type.manager;
 
 import org.globsframework.metamodel.GlobType;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
-import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldReadersFactory;
+
+import java.util.Optional;
 
 public interface GlobTypeFieldReadersManager {
 
-    GlobTypeFieldReaders getOrCreate(GlobType globType, GlobTypeFieldReadersFactory factory);
+    GlobTypeFieldReaders getOrCreate(GlobType globType);
 
 }

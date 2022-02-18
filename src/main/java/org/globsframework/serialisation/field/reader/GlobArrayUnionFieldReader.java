@@ -1,5 +1,7 @@
 package org.globsframework.serialisation.field.reader;
 
+import org.globsframework.metamodel.GlobType;
+import org.globsframework.metamodel.GlobTypeResolver;
 import org.globsframework.metamodel.fields.GlobArrayUnionField;
 import org.globsframework.model.Glob;
 import org.globsframework.model.MutableGlob;
@@ -16,18 +18,17 @@ import java.util.List;
 
 public class GlobArrayUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayUnionFieldReader.class);
-
-    private final BinReader binReader;
     private final Integer fieldNumber;
     private final GlobArrayUnionField field;
+    private final GlobTypeResolver resolver;
 
-    public GlobArrayUnionFieldReader(BinReader binReader, Integer fieldNumber, GlobArrayUnionField field) {
-        this.binReader = binReader;
+    public GlobArrayUnionFieldReader(Integer fieldNumber, GlobArrayUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
+        resolver = GlobTypeResolver.from(field.getTargetTypes());
     }
 
-    public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) throws IOException {
+    public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
         switch (tagWireType) {
             case WireConstants.Type.NULL:
                 data.set(field, null);
@@ -36,9 +37,9 @@ public class GlobArrayUnionFieldReader implements FieldReader {
                 List<Glob> globs = new ArrayList<>();
                 int size = inputStream.readInt();
                 for (int index = 0; index < size; index++) {
-                    globs.add(binReader.read(field.getTargetTypes()));
+                    inputStream.readGlob(resolver).ifPresent(globs::add);
                 }
-                data.set(field, globs.toArray(new Glob[size]));
+                data.set(field, globs.toArray(new Glob[globs.size()]));
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

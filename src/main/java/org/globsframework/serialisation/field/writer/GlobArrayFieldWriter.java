@@ -19,7 +19,7 @@ public class GlobArrayFieldWriter implements FieldWriter {
         this.field = field;
     }
 
-    public void write(CodedOutputStream codedOutputStream, Glob data) throws IOException {
+    public void write(CodedOutputStream codedOutputStream, Glob data) {
         if (!data.isSet(field)) {
             return;
         }
