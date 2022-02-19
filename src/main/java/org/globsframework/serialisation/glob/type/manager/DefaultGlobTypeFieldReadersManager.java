@@ -2,12 +2,11 @@ package org.globsframework.serialisation.glob.type.manager;
 
 import org.globsframework.metamodel.Field;
 import org.globsframework.metamodel.GlobType;
-import org.globsframework.metamodel.GlobTypeResolver;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.field.reader.FieldReaderVisitorCreator;
 import org.globsframework.serialisation.field.reader.UnknownFieldReader;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
-import org.globsframework.serialisation.model.FieldNumberAnnotationType;
+import org.globsframework.serialisation.model.FieldNumber;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,8 +23,8 @@ public class DefaultGlobTypeFieldReadersManager implements GlobTypeFieldReadersM
         List<FieldReader> fieldReaders = new ArrayList<>();
 
         for (Field field : fields) {
-            field.findOptAnnotation(FieldNumberAnnotationType.key)
-                    .map(FieldNumberAnnotationType.fieldNumber)
+            field.findOptAnnotation(FieldNumber.key)
+                    .map(FieldNumber.fieldNumber)
                     .ifPresent(fieldNumber -> field.safeVisit(
                             new FieldReaderVisitorCreator(fieldNumber, fieldReaders)
                     ));

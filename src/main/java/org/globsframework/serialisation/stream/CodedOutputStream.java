@@ -20,6 +20,10 @@ public class CodedOutputStream {
         return new CodedOutputStream(SerializedInputOutputFactory.init(outputStream));
     }
 
+    public void writeInt(int value) {
+        serializedOutput.write(value);
+    }
+
     public void writeStartGlob(String typeName) {
         serializedOutput.write(WireConstants.makeTag(0, WireConstants.Type.START_GLOB));
         serializedOutput.writeUtf8String(typeName);

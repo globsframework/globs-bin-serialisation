@@ -8,7 +8,7 @@ import org.globsframework.metamodel.fields.*;
 import org.globsframework.model.Glob;
 import org.globsframework.serialisation.glob.GlobBinReader;
 import org.globsframework.serialisation.glob.GlobBinWriter;
-import org.globsframework.serialisation.model.FieldNumber;
+import org.globsframework.serialisation.model.FieldNumber_;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -314,51 +314,51 @@ public class BinReaderTest extends TestCase {
     public static class Proto1 {
         public static GlobType TYPE;
 
-        @FieldNumber(1)
+        @FieldNumber_(1)
         public static BooleanField booleanField;
-        @FieldNumber(2)
+        @FieldNumber_(2)
         public static BooleanArrayField booleanArrayField;
-        @FieldNumber(3)
+        @FieldNumber_(3)
         public static IntegerField intField;
-        @FieldNumber(4)
+        @FieldNumber_(4)
         public static IntegerArrayField intArrayField;
-        @FieldNumber(5)
+        @FieldNumber_(5)
         public static LongField longField;
-        @FieldNumber(6)
+        @FieldNumber_(6)
         public static LongArrayField longArrayField;
-        @FieldNumber(7)
+        @FieldNumber_(7)
         public static DoubleField doubleField;
-        @FieldNumber(8)
+        @FieldNumber_(8)
         public static DoubleArrayField doubleArrayField;
-        @FieldNumber(9)
+        @FieldNumber_(9)
         public static BigDecimalField bigDecimalField;
-        @FieldNumber(10)
+        @FieldNumber_(10)
         public static BigDecimalArrayField bigDecimalArrayField;
-        @FieldNumber(11)
+        @FieldNumber_(11)
         public static StringField strField;
-        @FieldNumber(12)
+        @FieldNumber_(12)
         public static StringArrayField strArrayField;
-        @FieldNumber(13)
+        @FieldNumber_(13)
         public static DateField dateField;
-        @FieldNumber(14)
+        @FieldNumber_(14)
         public static DateTimeField dateTimeField;
-        @FieldNumber(15)
+        @FieldNumber_(15)
         public static BlobField blobField;
 
         @Target(Proto1.class)
-        @FieldNumber(16)
+        @FieldNumber_(16)
         public static GlobField globField;
 
         @Target(Proto1.class)
-        @FieldNumber(17)
+        @FieldNumber_(17)
         public static GlobArrayField globArrayField;
 
         @Targets({Proto1.class, Proto2.class})
-        @FieldNumber(18)
+        @FieldNumber_(18)
         public static GlobUnionField globUnionField;
 
         @Targets({Proto1.class, Proto2.class})
-        @FieldNumber(19)
+        @FieldNumber_(19)
         public static GlobArrayUnionField globArrayUnionField;
 
         static {
@@ -369,7 +369,7 @@ public class BinReaderTest extends TestCase {
     public static class Proto2 {
         public static GlobType TYPE;
 
-        @FieldNumber(1)
+        @FieldNumber_(1)
         public static BooleanField booleanField;
 
         static {

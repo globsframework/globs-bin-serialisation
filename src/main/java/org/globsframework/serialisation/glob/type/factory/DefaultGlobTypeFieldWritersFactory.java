@@ -7,7 +7,7 @@ import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.field.writer.FieldWriterVisitorCreator;
 import org.globsframework.serialisation.field.writer.NullFieldWriter;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
-import org.globsframework.serialisation.model.FieldNumberAnnotationType;
+import org.globsframework.serialisation.model.FieldNumber;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,8 +25,8 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
         List<FieldWriter> fieldWriters = new ArrayList<>();
 
         for (Field field : fields) {
-            field.findOptAnnotation(FieldNumberAnnotationType.key)
-                    .map(FieldNumberAnnotationType.fieldNumber)
+            field.findOptAnnotation(FieldNumber.key)
+                    .map(FieldNumber.fieldNumber)
                     .ifPresent(fieldNumber -> field.safeVisit(
                             new FieldWriterVisitorCreator(binWriter, fieldNumber, fieldWriters)
                     ));

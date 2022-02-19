@@ -12,6 +12,7 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 
 public class GlobBinWriter implements BinWriter {
     private final CodedOutputStream codedOutputStream;
@@ -35,6 +36,11 @@ public class GlobBinWriter implements BinWriter {
             fieldWriter.write(codedOutputStream, glob);
         }
         codedOutputStream.writeEndGlob();
+    }
+
+    public void write(Collection<Glob> globs) {
+        codedOutputStream.writeInt(globs.size());
+        globs.forEach(this::write);
     }
 
 }

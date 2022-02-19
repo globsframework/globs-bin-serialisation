@@ -1,17 +1,29 @@
 package org.globsframework.serialisation.model;
 
 import org.globsframework.metamodel.GlobType;
+import org.globsframework.metamodel.GlobTypeLoaderFactory;
+import org.globsframework.metamodel.annotations.GlobCreateFromAnnotation;
+import org.globsframework.metamodel.annotations.InitUniqueKey;
+import org.globsframework.metamodel.fields.IntegerField;
+import org.globsframework.model.Glob;
+import org.globsframework.model.Key;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public class FieldNumber {
+    public static GlobType TYPE;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+    public static IntegerField fieldNumber;
 
-@Retention(RUNTIME)
-@Target({ElementType.FIELD})
-public @interface FieldNumber {
-    int value();
+    @InitUniqueKey
+    public static Key key;
 
-    GlobType TYPE = FieldNumberAnnotationType.TYPE;
+    static {
+        GlobTypeLoaderFactory.create(FieldNumber.class)
+                .register(GlobCreateFromAnnotation.class, annotation -> TYPE.instantiate()
+                        .set(fieldNumber, ((FieldNumber_) annotation).value()))
+                .load();
+    }
+
+    public static Glob create(int index) {
+        return TYPE.instantiate().set(fieldNumber, index);
+    }
 }
