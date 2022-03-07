@@ -1,8 +1,7 @@
 package org.globsframework.serialisation.field.writer;
 
 import org.globsframework.metamodel.fields.IntegerArrayField;
-import org.globsframework.metamodel.fields.IntegerField;
-import org.globsframework.model.Glob;
+import org.globsframework.model.FieldValuesAccessor;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
@@ -15,7 +14,7 @@ public class IntegerArrayFieldWriter implements FieldWriter {
         this.field = field;
     }
 
-    public void write(CodedOutputStream codedOutputStream, Glob data) {
+    public void write(CodedOutputStream codedOutputStream, FieldValuesAccessor data) {
         if (data.isSet(field)) {
             int[] value = data.get(field);
             if (value == null) {

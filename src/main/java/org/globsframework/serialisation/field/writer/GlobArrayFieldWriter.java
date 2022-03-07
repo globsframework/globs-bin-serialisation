@@ -1,12 +1,11 @@
 package org.globsframework.serialisation.field.writer;
 
 import org.globsframework.metamodel.fields.GlobArrayField;
+import org.globsframework.model.FieldValuesAccessor;
 import org.globsframework.model.Glob;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
-
-import java.io.IOException;
 
 public class GlobArrayFieldWriter implements FieldWriter {
     private final BinWriter binWriter;
@@ -19,7 +18,7 @@ public class GlobArrayFieldWriter implements FieldWriter {
         this.field = field;
     }
 
-    public void write(CodedOutputStream codedOutputStream, Glob data) {
+    public void write(CodedOutputStream codedOutputStream, FieldValuesAccessor data) {
         if (!data.isSet(field)) {
             return;
         }
