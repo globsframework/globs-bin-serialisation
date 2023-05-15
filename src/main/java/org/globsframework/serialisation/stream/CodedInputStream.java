@@ -126,6 +126,10 @@ public class CodedInputStream {
         return serializedInput.readNotNullInt();
     }
 
+    public int readByte() {
+        return serializedInput.readByte();
+    }
+
     public int[] readIntArray() {
         return serializedInput.readIntArray();
     }
@@ -169,20 +173,23 @@ public class CodedInputStream {
     }
 
     public LocalDate readLocalDate() {
-        int year = readInt();
-        int month = readInt();
-        int dayOfMonth = readInt();
+        int all = readInt();
+        int year = (all >>> 9);
+        int month = (all >>> 5) & 0xF;
+        int dayOfMonth = ((int) (all & 0x1F));
 
         return LocalDate.of(year, month, dayOfMonth);
     }
 
     public ZonedDateTime readZonedDateTime() {
-        int year = readInt();
-        int month = readInt();
-        int dayOfMonth = readInt();
-        int hour = readInt();
-        int minute = readInt();
-        int second = readInt();
+        int val1 = readInt();
+        int year = (val1 >>> 9);
+        int month = (val1 >>> 5) & 0xF;
+        int dayOfMonth = ((int) (val1 & 0x1F));
+        int val2 = readInt();
+        int hour = (val2 >>> 12);
+        int minute = (val2 >>> 6) & 0x3F;
+        int second = ((int) (val2 & 0x3F));
         int nanoOfSecond = readInt();
         ZoneId zoneId = ZoneId.of(readUtf8String());
 

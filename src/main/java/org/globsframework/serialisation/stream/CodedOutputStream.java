@@ -99,19 +99,18 @@ public class CodedOutputStream {
 
     public void writeLocalDate(int fieldNumber, LocalDate value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DATE));
-        serializedOutput.write(value.getYear());
-        serializedOutput.write(value.getMonthValue());
-        serializedOutput.write(value.getDayOfMonth());
+        int val = value.getYear() << 9 | value.getMonthValue() << 5 | value.getDayOfMonth();
+        serializedOutput.write(val);
     }
 
     public void writeZonedDateTime(int fieldNumber, ZonedDateTime value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.DATE_TIME));
-        serializedOutput.write(value.getYear());
-        serializedOutput.write(value.getMonthValue());
-        serializedOutput.write(value.getDayOfMonth());
-        serializedOutput.write(value.getHour());
-        serializedOutput.write(value.getMinute());
-        serializedOutput.write(value.getSecond());
+        //  Month : 4, day : 5,
+        int val1 = (value.getYear() & 0xFFFFF) << 9 | value.getMonthValue() << 5 | value.getDayOfMonth();
+        serializedOutput.write(val1);
+        // hour : 5, minutes : 6, second 6
+        int val2 = value.getHour() << 12 | value.getMinute() << 6 | value.getSecond();
+        serializedOutput.write(val2);
         serializedOutput.write(value.getNano());
         serializedOutput.writeUtf8String(value.getZone().getId());
     }
