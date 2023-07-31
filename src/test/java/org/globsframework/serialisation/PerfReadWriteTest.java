@@ -85,8 +85,13 @@ public class PerfReadWriteTest {
     }
 
     /*
+    MSI
     read 267.040952ms => 3744743.989678407 objects/s
     read 265.54786ms => 3765799.505972294 objects/s
+
+LENOVO :
+   read 140.288505ms => 7128167.771122802 objects/s
+   read 126.594838ms => 7899216.238185004 objects/s
 
      */
     private void read(BinReader gson, byte[] s) {
