@@ -29,10 +29,8 @@ public class GlobArrayFieldReader implements FieldReader {
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
         switch (tagWireType) {
-            case WireConstants.Type.NULL:
-                data.set(field, null);
-                break;
-            case WireConstants.Type.GLOB_ARRAY:
+            case WireConstants.Type.NULL -> data.set(field, null);
+            case WireConstants.Type.GLOB_ARRAY -> {
                 List<Glob> globs = new ArrayList<>();
                 int size = inputStream.readInt();
                 for (int index = 0; index < size; index++) {
@@ -41,11 +39,12 @@ public class GlobArrayFieldReader implements FieldReader {
                             .ifPresent(globs::add);
                 }
                 data.set(field, globs.toArray(new Glob[globs.size()]));
-                break;
-            default:
+            }
+            default -> {
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;
                 LOGGER.error(message);
                 inputStream.skipField(tag);
+            }
         }
     }
 

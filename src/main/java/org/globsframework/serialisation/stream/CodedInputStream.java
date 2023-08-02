@@ -33,6 +33,10 @@ public class CodedInputStream {
         return new CodedInputStream(globTypeFieldReadersManager, SerializedInputOutputFactory.init(inputStream));
     }
 
+    public static CodedInputStream newInstance(GlobTypeFieldReadersManager globTypeFieldReadersManager, byte[] data) {
+        return new CodedInputStream(globTypeFieldReadersManager, SerializedInputOutputFactory.init(data));
+    }
+
     public int readTag() {
         return readInt();
     }

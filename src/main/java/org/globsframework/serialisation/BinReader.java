@@ -9,5 +9,9 @@ public interface BinReader {
 
     Optional<Glob> read(InputStream inputStream);
 
+    Optional<Glob> read(byte[] data);
+
     Glob[] readArray(InputStream inputStream);
+
+    Glob[] readArray(byte[] data);
 }
