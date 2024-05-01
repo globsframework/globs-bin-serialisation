@@ -1,6 +1,6 @@
 This library is useful to serialized Glob in a binary format that is backward compatible.
 It is a kind of TLV (Type Length Value) a la Google Protocol Buffer.
-The default binary serialisation is mode efficient but is not backward compatible as the value are directly written in the order of the fields in the GlobType.
+The default binary serialisation privided in Globs is more efficient but is not backward compatible as the value are directly written in the order of the fields in the GlobType.
 
 An id is given to each field using annotation FieldNumber_.
 
