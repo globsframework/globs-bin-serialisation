@@ -5,6 +5,17 @@ The default binary serialisation privided in Globs is more efficient but is not 
 An id is given to each field using annotation FieldNumber_.
 
 ```
+    public static class Proto1 {
+        public static GlobType TYPE;
+
+        @FieldNumber_(1)
+        public static BooleanField booleanField;
+        @FieldNumber_(2)
+        public static BooleanArrayField booleanArrayField;
+...
+```
+
+```
        Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.booleanField, true);
 
