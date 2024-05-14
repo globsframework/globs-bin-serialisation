@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.glob.type.manager;
 
-import org.globsframework.metamodel.Field;
+import org.globsframework.metamodel.fields.Field;
 import org.globsframework.metamodel.GlobType;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.field.reader.FieldReaderVisitorCreator;

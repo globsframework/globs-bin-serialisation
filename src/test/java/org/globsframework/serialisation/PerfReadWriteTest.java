@@ -23,11 +23,10 @@ import java.util.stream.IntStream;
 
 public class PerfReadWriteTest {
 
-//    static {
-//        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.GeneratorGlobFactoryService");
-//        System.setProperty("globsframework.field.no.check", "true");
-//    }
-
+    static {
+        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.GeneratorGlobFactoryService");
+        System.setProperty("globsframework.field.no.check", "true");
+    }
 
     @Test
     public void perfStandard() throws IOException {
@@ -142,12 +141,12 @@ public class PerfReadWriteTest {
     write 332.645207ms size : 69784 s=
 
      */
-    private byte[] write(List<Glob> collect, BinWriterFactory gson) {
+    private byte[] write(List<Glob> collect, BinWriterFactory writerFactory) {
         long start = System.nanoTime();
         ReusableByteArrayOutputStream outputStream = new ReusableByteArrayOutputStream();
         for (int i = 0 ; i < 1000; i++) {
             outputStream = new ReusableByteArrayOutputStream();
-            GlobBinWriter globBinWriter = gson.create(outputStream);
+            GlobBinWriter globBinWriter = writerFactory.create(outputStream);
             globBinWriter.write(collect);
         }
         long end = System.nanoTime();
@@ -165,11 +164,11 @@ LENOVO :
    read 126.594838ms => 7899216.238185004 objects/s
 
      */
-    private void read(BinReader gson, byte[] s) {
+    private void read(BinReader binReader, byte[] s) {
         long start = System.nanoTime();
         Glob[] globs = new Glob[0];
         for (int i = 0 ; i < 1000; i++) {
-            globs = gson.readArray(s);
+            globs = binReader.readArray(s);
             Assert.assertEquals(globs.length, 1000);
         }
         long end = System.nanoTime();
