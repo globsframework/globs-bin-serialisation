@@ -25,7 +25,7 @@ public class DefaultGlobTypeFieldReadersManager implements GlobTypeFieldReadersM
         for (Field field : fields) {
             field.findOptAnnotation(FieldNumber.key)
                     .map(FieldNumber.fieldNumber)
-                    .ifPresent(fieldNumber -> field.safeVisit(
+                    .ifPresent(fieldNumber -> field.safeAccept(
                             new FieldReaderVisitorCreator(fieldNumber, fieldReaders)
                     ));
         }

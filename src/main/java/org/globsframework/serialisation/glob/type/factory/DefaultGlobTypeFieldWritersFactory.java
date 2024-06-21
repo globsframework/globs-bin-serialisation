@@ -27,7 +27,7 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
         for (Field field : fields) {
             field.findOptAnnotation(FieldNumber.key)
                     .map(FieldNumber.fieldNumber)
-                    .ifPresent(fieldNumber -> field.safeVisit(
+                    .ifPresent(fieldNumber -> field.safeAccept(
                             new FieldWriterVisitorCreator(binWriter, fieldNumber, fieldWriters)
                     ));
         }
