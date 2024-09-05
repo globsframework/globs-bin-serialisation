@@ -214,21 +214,7 @@ public class CodedInputStream {
         Optional<GlobType> globTypeOpt = typeResolver.find(typeName);
 
         if (globTypeOpt.isPresent()) {
-            GlobType globType = globTypeOpt.get();
-            GlobTypeFieldReaders globTypeFieldReaders = globTypeFieldReadersManager.getOrCreate(globType);
-            MutableGlob data = globType.instantiate();
-            while (true) {
-                int fieldTag = readTag();
-                int fieldNumber = WireConstants.getTagFieldNumber(fieldTag);
-                int tagWireType = WireConstants.getTagWireType(fieldTag);
-
-                if (tagWireType == END_GLOB) {
-                    return Optional.of(data);
-                }
-
-                globTypeFieldReaders.get(fieldNumber)
-                        .read(data, fieldTag, tagWireType, this);
-            }
+            return readGlob(globTypeOpt.get(), globTypeFieldReadersManager.getOrCreate(globTypeOpt.get()));
         } else {
             while (true) {
                 int fieldTag = readTag();
@@ -239,6 +225,22 @@ public class CodedInputStream {
                 }
                 skipField(tag);
             }
+        }
+    }
+
+    private Optional<Glob> readGlob(GlobType globType, GlobTypeFieldReaders globTypeFieldReaders) {
+        MutableGlob data = globType.instantiate();
+        while (true) {
+            int fieldTag = readTag();
+            int fieldNumber = WireConstants.getTagFieldNumber(fieldTag);
+            int tagWireType = WireConstants.getTagWireType(fieldTag);
+
+            if (tagWireType == END_GLOB) {
+                return Optional.of(data);
+            }
+
+            globTypeFieldReaders.get(fieldNumber)
+                    .read(data, fieldTag, tagWireType, this);
         }
     }
 }
