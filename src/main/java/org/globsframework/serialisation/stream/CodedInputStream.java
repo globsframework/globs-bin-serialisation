@@ -1,14 +1,14 @@
 package org.globsframework.serialisation.stream;
 
-import org.globsframework.metamodel.GlobType;
-import org.globsframework.metamodel.GlobTypeResolver;
-import org.globsframework.model.Glob;
-import org.globsframework.model.MutableGlob;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.GlobTypeResolver;
+import org.globsframework.core.model.Glob;
+import org.globsframework.core.model.MutableGlob;
+import org.globsframework.core.utils.serialization.SerializedInput;
+import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
-import org.globsframework.utils.serialization.SerializedInput;
-import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 
 import java.io.InputStream;
 import java.math.BigDecimal;

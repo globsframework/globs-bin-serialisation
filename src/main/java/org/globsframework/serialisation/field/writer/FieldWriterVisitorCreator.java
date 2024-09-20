@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.field.writer;
 
-import org.globsframework.metamodel.fields.*;
+import org.globsframework.core.metamodel.fields.*;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 

@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.field.reader;
 
-import org.globsframework.model.MutableGlob;
+import org.globsframework.core.model.MutableGlob;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 

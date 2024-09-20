@@ -1,8 +1,8 @@
 package org.globsframework.serialisation.field.writer;
 
-import org.globsframework.metamodel.fields.GlobUnionField;
-import org.globsframework.model.FieldValuesAccessor;
-import org.globsframework.model.Glob;
+import org.globsframework.core.metamodel.fields.GlobUnionField;
+import org.globsframework.core.model.FieldValuesAccessor;
+import org.globsframework.core.model.Glob;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;

@@ -1,8 +1,8 @@
 package org.globsframework.serialisation.stream;
 
+import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
+import org.globsframework.core.utils.serialization.SerializedOutput;
 import org.globsframework.serialisation.WireConstants;
-import org.globsframework.utils.serialization.SerializedInputOutputFactory;
-import org.globsframework.utils.serialization.SerializedOutput;
 
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -79,7 +79,7 @@ public class CodedOutputStream {
 
     public void writeBigDecimal(int fieldNumber, BigDecimal value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.BIG_DECIMAL));
-        serializedOutput.write(new BigDecimal[] {value});
+        serializedOutput.write(new BigDecimal[]{value});
     }
 
     public void writeBigDecimalArray(int fieldNumber, BigDecimal[] value) {

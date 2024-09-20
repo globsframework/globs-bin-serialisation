@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.field.writer;
 
-import org.globsframework.model.FieldValuesAccessor;
+import org.globsframework.core.model.FieldValuesAccessor;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 

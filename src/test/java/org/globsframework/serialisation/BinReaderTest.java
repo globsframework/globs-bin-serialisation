@@ -1,11 +1,14 @@
 package org.globsframework.serialisation;
 
 import junit.framework.TestCase;
-import org.globsframework.metamodel.*;
-import org.globsframework.metamodel.annotations.Target;
-import org.globsframework.metamodel.annotations.Targets;
-import org.globsframework.metamodel.fields.*;
-import org.globsframework.model.Glob;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.GlobTypeBuilderFactory;
+import org.globsframework.core.metamodel.GlobTypeLoaderFactory;
+import org.globsframework.core.metamodel.GlobTypeResolver;
+import org.globsframework.core.metamodel.annotations.Target;
+import org.globsframework.core.metamodel.annotations.Targets;
+import org.globsframework.core.metamodel.fields.*;
+import org.globsframework.core.model.Glob;
 import org.globsframework.serialisation.glob.GlobBinReader;
 import org.globsframework.serialisation.glob.GlobBinWriter;
 import org.globsframework.serialisation.model.FieldNumber_;

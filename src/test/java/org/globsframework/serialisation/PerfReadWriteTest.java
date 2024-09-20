@@ -1,18 +1,20 @@
 package org.globsframework.serialisation;
 
-import org.globsframework.metamodel.GlobType;
-import org.globsframework.metamodel.GlobTypeBuilder;
-import org.globsframework.metamodel.annotations.AllAnnotations;
-import org.globsframework.metamodel.fields.DoubleField;
-import org.globsframework.metamodel.fields.IntegerField;
-import org.globsframework.metamodel.fields.StringField;
-import org.globsframework.metamodel.impl.DefaultGlobModel;
-import org.globsframework.metamodel.impl.DefaultGlobTypeBuilder;
-import org.globsframework.model.Glob;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.GlobTypeBuilder;
+import org.globsframework.core.metamodel.annotations.AllAnnotations;
+import org.globsframework.core.metamodel.fields.DoubleField;
+import org.globsframework.core.metamodel.fields.IntegerField;
+import org.globsframework.core.metamodel.fields.StringField;
+import org.globsframework.core.metamodel.impl.DefaultGlobModel;
+import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
+import org.globsframework.core.model.Glob;
+import org.globsframework.core.utils.ReusableByteArrayOutputStream;
+import org.globsframework.core.utils.serialization.SerializedInput;
+import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
+import org.globsframework.core.utils.serialization.SerializedOutput;
 import org.globsframework.serialisation.glob.GlobBinWriter;
 import org.globsframework.serialisation.model.FieldNumber;
-import org.globsframework.utils.ReusableByteArrayOutputStream;
-import org.globsframework.utils.serialization.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,7 +72,7 @@ public class PerfReadWriteTest {
     private byte[] writeBin(List<Glob> collect) {
         long start = System.nanoTime();
         ReusableByteArrayOutputStream outputStream = null;
-        for (int i = 0 ; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             outputStream = new ReusableByteArrayOutputStream();
             final SerializedOutput init = SerializedInputOutputFactory.init(outputStream);
             for (Glob glob : collect) {
@@ -78,14 +80,14 @@ public class PerfReadWriteTest {
             }
         }
         long end = System.nanoTime();
-        System.out.println("write " + (end - start) / 1000000. + "ms size : " + outputStream.size()  + " s=" + new String(outputStream.getBuffer(), 0, 10));  // 1100ms puis 600ms
+        System.out.println("write " + (end - start) / 1000000. + "ms size : " + outputStream.size() + " s=" + new String(outputStream.getBuffer(), 0, 10));  // 1100ms puis 600ms
         return outputStream.getBuffer();
     }
 
     private void readBin(byte[] s, DefaultGlobModel globTypes) {
         long start = System.nanoTime();
         Glob[] globs = new Glob[1000];
-        for (int i = 0 ; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             SerializedInput input = SerializedInputOutputFactory.init(s);
             for (int j = 0; j < 1000; j++) {
                 globs[j] = input.readGlob(globTypes);
@@ -144,13 +146,13 @@ public class PerfReadWriteTest {
     private byte[] write(List<Glob> collect, BinWriterFactory writerFactory) {
         long start = System.nanoTime();
         ReusableByteArrayOutputStream outputStream = new ReusableByteArrayOutputStream();
-        for (int i = 0 ; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             outputStream = new ReusableByteArrayOutputStream();
             GlobBinWriter globBinWriter = writerFactory.create(outputStream);
             globBinWriter.write(collect);
         }
         long end = System.nanoTime();
-        System.out.println("write " + (end - start) / 1000000. + "ms size : " + outputStream.size()  + " s=" + new String(outputStream.getBuffer(), 0, 10));  // 1100ms puis 600ms
+        System.out.println("write " + (end - start) / 1000000. + "ms size : " + outputStream.size() + " s=" + new String(outputStream.getBuffer(), 0, 10));  // 1100ms puis 600ms
         return outputStream.getBuffer();
     }
 
@@ -167,7 +169,7 @@ LENOVO :
     private void read(BinReader binReader, byte[] s) {
         long start = System.nanoTime();
         Glob[] globs = new Glob[0];
-        for (int i = 0 ; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             globs = binReader.readArray(s);
             Assert.assertEquals(globs.length, 1000);
         }

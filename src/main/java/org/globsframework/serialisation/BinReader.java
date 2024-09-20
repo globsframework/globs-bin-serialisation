@@ -1,6 +1,6 @@
 package org.globsframework.serialisation;
 
-import org.globsframework.model.Glob;
+import org.globsframework.core.model.Glob;
 
 import java.io.InputStream;
 import java.util.Optional;

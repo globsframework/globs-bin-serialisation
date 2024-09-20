@@ -1,21 +1,24 @@
 package org.globsframework.serialisation.glob.type.manager;
 
-import org.globsframework.metamodel.fields.Field;
-import org.globsframework.metamodel.GlobType;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.field.reader.FieldReaderVisitorCreator;
 import org.globsframework.serialisation.field.reader.UnknownFieldReader;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.model.FieldNumber;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultGlobTypeFieldReadersManager implements GlobTypeFieldReadersManager {
     private final Map<String, GlobTypeFieldReaders> readersMap = new ConcurrentHashMap<>();
 
     public GlobTypeFieldReaders getOrCreate(GlobType globType) {
-       return readersMap.computeIfAbsent(globType.getName(), s -> create(globType));
+        return readersMap.computeIfAbsent(globType.getName(), s -> create(globType));
     }
 
     public GlobTypeFieldReaders create(GlobType globType) {

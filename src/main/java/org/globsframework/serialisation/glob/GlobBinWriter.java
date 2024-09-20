@@ -1,7 +1,7 @@
 package org.globsframework.serialisation.glob;
 
-import org.globsframework.metamodel.GlobType;
-import org.globsframework.model.Glob;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.model.Glob;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
@@ -10,7 +10,6 @@ import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldWritersFa
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 

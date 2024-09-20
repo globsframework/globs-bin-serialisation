@@ -1,8 +1,7 @@
 package org.globsframework.serialisation;
 
-import org.globsframework.model.Glob;
+import org.globsframework.core.model.Glob;
 
-import java.io.IOException;
 import java.util.Collection;
 
 public interface BinWriter {

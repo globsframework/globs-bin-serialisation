@@ -1,9 +1,8 @@
 package org.globsframework.serialisation;
 
-import org.globsframework.metamodel.GlobTypeResolver;
+import org.globsframework.core.metamodel.GlobTypeResolver;
 import org.globsframework.serialisation.glob.GlobBinReader;
 import org.globsframework.serialisation.glob.type.manager.DefaultGlobTypeFieldReadersManager;
-import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
 
 public class BinReaderFactory {
 

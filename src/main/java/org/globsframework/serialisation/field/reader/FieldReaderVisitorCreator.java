@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.field.reader;
 
-import org.globsframework.metamodel.fields.*;
+import org.globsframework.core.metamodel.fields.*;
 import org.globsframework.serialisation.field.FieldReader;
 
 import java.util.List;

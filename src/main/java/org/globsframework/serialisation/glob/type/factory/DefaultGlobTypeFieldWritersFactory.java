@@ -1,7 +1,7 @@
 package org.globsframework.serialisation.glob.type.factory;
 
-import org.globsframework.metamodel.fields.Field;
-import org.globsframework.metamodel.GlobType;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.field.writer.FieldWriterVisitorCreator;

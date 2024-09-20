@@ -1,12 +1,10 @@
 package org.globsframework.serialisation.glob;
 
-import org.globsframework.metamodel.GlobTypeResolver;
-import org.globsframework.model.Glob;
+import org.globsframework.core.metamodel.GlobTypeResolver;
+import org.globsframework.core.model.Glob;
 import org.globsframework.serialisation.BinReader;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
 import org.globsframework.serialisation.stream.CodedInputStream;
-import org.globsframework.utils.serialization.SerializedInput;
-import org.globsframework.utils.serialization.SerializedInputOutputFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;

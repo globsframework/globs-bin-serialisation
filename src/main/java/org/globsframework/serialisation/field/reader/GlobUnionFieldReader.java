@@ -1,19 +1,13 @@
 package org.globsframework.serialisation.field.reader;
 
-import org.globsframework.metamodel.GlobType;
-import org.globsframework.metamodel.GlobTypeResolver;
-import org.globsframework.metamodel.fields.GlobUnionField;
-import org.globsframework.model.Glob;
-import org.globsframework.model.MutableGlob;
-import org.globsframework.serialisation.BinReader;
+import org.globsframework.core.metamodel.GlobTypeResolver;
+import org.globsframework.core.metamodel.fields.GlobUnionField;
+import org.globsframework.core.model.MutableGlob;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Optional;
 
 public class GlobUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobUnionFieldReader.class);
