@@ -17,7 +17,7 @@ public class FieldNumber {
     public static Key key;
 
     static {
-        GlobTypeLoaderFactory.create(FieldNumber.class)
+        GlobTypeLoaderFactory.create(FieldNumber.class, "FieldNumber")
                 .register(GlobCreateFromAnnotation.class, annotation -> TYPE.instantiate()
                         .set(fieldNumber, ((FieldNumber_) annotation).value()))
                 .load();
