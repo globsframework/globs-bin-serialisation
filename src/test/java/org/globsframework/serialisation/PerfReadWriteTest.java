@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
 public class PerfReadWriteTest {
 
     static {
-        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.GeneratorGlobFactoryService");
+        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.primitive.GeneratorGlobFactoryService");
         System.setProperty("globsframework.field.no.check", "true");
     }
 
