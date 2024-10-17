@@ -2,7 +2,7 @@ package org.globsframework.serialisation;
 
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.GlobTypeBuilder;
-import org.globsframework.core.metamodel.annotations.AllAnnotations;
+import org.globsframework.core.metamodel.annotations.AllCoreAnnotations;
 import org.globsframework.core.metamodel.fields.DoubleField;
 import org.globsframework.core.metamodel.fields.IntegerField;
 import org.globsframework.core.metamodel.fields.StringField;
@@ -49,7 +49,7 @@ public class PerfReadWriteTest {
                                 .set(anInt, i)
                                 .set(aDouble, i))
                 .collect(Collectors.toList());
-        DefaultGlobModel globTypes = new DefaultGlobModel(AllAnnotations.MODEL, globType);
+        DefaultGlobModel globTypes = new DefaultGlobModel(AllCoreAnnotations.MODEL, globType);
 
         byte[] s;
         writeBin(collect);
@@ -118,7 +118,7 @@ public class PerfReadWriteTest {
                                 .set(anInt, i)
                                 .set(aDouble, i))
                 .collect(Collectors.toList());
-        DefaultGlobModel globTypes = new DefaultGlobModel(AllAnnotations.MODEL, globType);
+        DefaultGlobModel globTypes = new DefaultGlobModel(AllCoreAnnotations.MODEL, globType);
         BinReader globBinReader = BinReaderFactory.create().createGlobBinReader(globTypes);
         BinWriterFactory binWriterFactory = BinWriterFactory.create();
         byte[] s;
