@@ -9,6 +9,7 @@ import org.globsframework.core.metamodel.fields.StringField;
 import org.globsframework.core.metamodel.impl.DefaultGlobModel;
 import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
 import org.globsframework.core.model.Glob;
+import org.globsframework.core.model.GlobFactoryService;
 import org.globsframework.core.utils.ReusableByteArrayOutputStream;
 import org.globsframework.core.utils.serialization.SerializedInput;
 import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
@@ -25,11 +26,11 @@ import java.util.stream.IntStream;
 
 public class PerfReadWriteTest {
 
-//    static {
-//        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.primitive.GeneratorGlobFactoryService");
-//        System.setProperty("globsframework.field.no.check", "true");
-//        GlobFactoryService.Builder.reset();
-//    }
+    static {
+        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.object.GeneratorGlobFactoryService");
+        System.setProperty("globsframework.field.no.check", "true");
+        GlobFactoryService.Builder.reset();
+    }
 
     @Test
     public void perfStandard() throws IOException {
@@ -73,8 +74,9 @@ public class PerfReadWriteTest {
     private byte[] writeBin(List<Glob> collect) {
         long start = System.nanoTime();
         ReusableByteArrayOutputStream outputStream = null;
+        outputStream = new ReusableByteArrayOutputStream();
         for (int i = 0; i < 1000; i++) {
-            outputStream = new ReusableByteArrayOutputStream();
+            outputStream.reset();
             final SerializedOutput init = SerializedInputOutputFactory.init(outputStream);
             for (Glob glob : collect) {
                 init.writeGlob(glob);
