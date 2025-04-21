@@ -38,7 +38,7 @@ public class GlobBinReader implements BinReader {
         for (int i = 0; i < size; i++) {
             read(stream).ifPresent(elements::add);
         }
-        return elements.toArray(Glob[]::new);
+        return elements.toArray(new Glob[0]);
     }
 
     @Override
@@ -49,6 +49,6 @@ public class GlobBinReader implements BinReader {
         for (int i = 0; i < size; i++) {
             inputStream.readGlob(resolver).ifPresent(elements::add);
         }
-        return elements.toArray(Glob[]::new);
+        return elements.toArray(new Glob[0]);
     }
 }
