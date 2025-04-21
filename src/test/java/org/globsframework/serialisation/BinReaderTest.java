@@ -288,12 +288,12 @@ public class BinReaderTest extends TestCase {
 
     private void check(Glob p, Glob ex) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        GlobBinWriter binWriter = BinWriterFactory.create().create(byteArrayOutputStream);
+        BinWriter binWriter = BinWriterFactory.create().create(byteArrayOutputStream);
         binWriter.write(p);
 
         GlobType readType = ex.getType();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        GlobBinReader binReader = BinReaderFactory.create().createGlobBinReader(GlobTypeResolver.from(readType));
+        BinReader binReader = BinReaderFactory.create().createGlobBinReader(GlobTypeResolver.from(readType));
         Glob r = binReader.read(inputStream).get();
 
         Field[] fields = r.getType().getFields();

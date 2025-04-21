@@ -26,11 +26,11 @@ import java.util.stream.IntStream;
 
 public class PerfReadWriteTest {
 
-    static {
-        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.object.GeneratorGlobFactoryService");
-        System.setProperty("globsframework.field.no.check", "true");
-        GlobFactoryService.Builder.reset();
-    }
+//    static {
+//        System.setProperty("org.globsframework.builder", "org.globsframework.model.generator.object.GeneratorGlobFactoryService");
+//        System.setProperty("globsframework.field.no.check", "true");
+//        GlobFactoryService.Builder.reset();
+//    }
 
     @Test
     public void perfStandard() throws IOException {
@@ -151,8 +151,8 @@ public class PerfReadWriteTest {
         ReusableByteArrayOutputStream outputStream = new ReusableByteArrayOutputStream();
         for (int i = 0; i < 1000; i++) {
             outputStream = new ReusableByteArrayOutputStream();
-            GlobBinWriter globBinWriter = writerFactory.create(outputStream);
-            globBinWriter.write(collect);
+            BinWriter binWriter = writerFactory.create(outputStream);
+            binWriter.write(collect);
         }
         long end = System.nanoTime();
         System.out.println("write " + (end - start) / 1000000. + "ms size : " + outputStream.size() + " s=" + new String(outputStream.getBuffer(), 0, 10));  // 1100ms puis 600ms

@@ -6,6 +6,7 @@ import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.field.reader.FieldReaderVisitorCreator;
 import org.globsframework.serialisation.field.reader.UnknownFieldReader;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
+import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldReadersFactory;
 import org.globsframework.serialisation.model.FieldNumber;
 
 import java.util.ArrayList;
@@ -16,34 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultGlobTypeFieldReadersManager implements GlobTypeFieldReadersManager {
     private final Map<String, GlobTypeFieldReaders> readersMap = new ConcurrentHashMap<>();
+    private final GlobTypeFieldReadersFactory globTypeFieldReadersFactory;
+
+    public DefaultGlobTypeFieldReadersManager(GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
+        this.globTypeFieldReadersFactory = globTypeFieldReadersFactory;
+    }
 
     public GlobTypeFieldReaders getOrCreate(GlobType globType) {
-        return readersMap.computeIfAbsent(globType.getName(), s -> create(globType));
+        return readersMap.computeIfAbsent(globType.getName(), s -> globTypeFieldReadersFactory.create(globType));
     }
 
-    public GlobTypeFieldReaders create(GlobType globType) {
-        Field[] fields = globType.getFields();
-        List<FieldReader> fieldReaders = new ArrayList<>();
-
-        for (Field field : fields) {
-            field.findOptAnnotation(FieldNumber.KEY)
-                    .map(FieldNumber.fieldNumber)
-                    .ifPresent(fieldNumber -> field.safeAccept(
-                            new FieldReaderVisitorCreator(fieldNumber, fieldReaders)
-                    ));
-        }
-
-        Integer size = fieldReaders.stream()
-                .map(FieldReader::getFieldNumber)
-                .max(Integer::compareTo)
-                .orElse(0);
-
-        FieldReader[] readers = new FieldReader[size + 1];
-        Arrays.fill(readers, UnknownFieldReader.INSTANCE);
-
-        for (FieldReader fieldReader : fieldReaders) {
-            readers[fieldReader.getFieldNumber()] = fieldReader;
-        }
-        return new GlobTypeFieldReaders(readers);
-    }
 }

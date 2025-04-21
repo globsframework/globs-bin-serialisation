@@ -17,7 +17,7 @@ public class BinWriterFactory {
         return new BinWriterFactory();
     }
 
-    public GlobBinWriter create(OutputStream outputStream) {
+    public BinWriter create(OutputStream outputStream) {
         return new GlobBinWriter(outputStream, globTypeFieldWritersManager);
     }
 
