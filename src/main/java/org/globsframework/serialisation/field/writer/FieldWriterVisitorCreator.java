@@ -1,18 +1,15 @@
 package org.globsframework.serialisation.field.writer;
 
 import org.globsframework.core.metamodel.fields.*;
-import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 
 import java.util.List;
 
 public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor {
-    private final BinWriter binWriter;
     private final int fieldNumber;
     private final List<FieldWriter> fieldWriters;
 
-    public FieldWriterVisitorCreator(BinWriter binWriter, int fieldNumber, List<FieldWriter> fieldWriters) {
-        this.binWriter = binWriter;
+    public FieldWriterVisitorCreator(int fieldNumber, List<FieldWriter> fieldWriters) {
         this.fieldNumber = fieldNumber;
         this.fieldWriters = fieldWriters;
     }
@@ -78,18 +75,18 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
     }
 
     public void visitGlob(GlobField field) {
-        fieldWriters.add(new GlobFieldWriter(binWriter, fieldNumber, field));
+        fieldWriters.add(new GlobFieldWriter(fieldNumber, field));
     }
 
     public void visitGlobArray(GlobArrayField field) {
-        fieldWriters.add(new GlobArrayFieldWriter(binWriter, fieldNumber, field));
+        fieldWriters.add(new GlobArrayFieldWriter(fieldNumber, field));
     }
 
     public void visitUnionGlob(GlobUnionField field) {
-        fieldWriters.add(new GlobUnionFieldWriter(binWriter, fieldNumber, field));
+        fieldWriters.add(new GlobUnionFieldWriter(fieldNumber, field));
     }
 
     public void visitUnionGlobArray(GlobArrayUnionField field) {
-        fieldWriters.add(new GlobArrayUnionFieldWriter(binWriter, fieldNumber, field));
+        fieldWriters.add(new GlobArrayUnionFieldWriter(fieldNumber, field));
     }
 }

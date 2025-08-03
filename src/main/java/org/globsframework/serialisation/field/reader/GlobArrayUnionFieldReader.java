@@ -17,12 +17,12 @@ public class GlobArrayUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayUnionFieldReader.class);
     private final Integer fieldNumber;
     private final GlobArrayUnionField field;
-    private final GlobTypeResolver resolver;
+    private final GlobTypeIndexResolver resolver;
 
     public GlobArrayUnionFieldReader(Integer fieldNumber, GlobArrayUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
-        resolver = GlobTypeResolver.from(field.getTargetTypes());
+        resolver = GlobTypeIndexResolver.from(field.getTargetTypes());
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
@@ -31,12 +31,13 @@ public class GlobArrayUnionFieldReader implements FieldReader {
                 data.set(field, null);
                 break;
             case WireConstants.Type.GLOB_UNION_ARRAY:
-                List<Glob> globs = new ArrayList<>();
                 int size = inputStream.readInt();
+                Glob[] globs = new Glob[size];
                 for (int index = 0; index < size; index++) {
-                    inputStream.readGlob(resolver).ifPresent(globs::add);
+                    final Glob glob = inputStream.readGlob(resolver);
+                    globs[index] = glob;
                 }
-                data.set(field, globs.toArray(new Glob[globs.size()]));
+                data.set(field, globs);
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

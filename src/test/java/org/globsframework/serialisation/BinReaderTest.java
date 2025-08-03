@@ -9,9 +9,10 @@ import org.globsframework.core.metamodel.annotations.Target;
 import org.globsframework.core.metamodel.annotations.Targets;
 import org.globsframework.core.metamodel.fields.*;
 import org.globsframework.core.model.Glob;
-import org.globsframework.serialisation.glob.GlobBinReader;
-import org.globsframework.serialisation.glob.GlobBinWriter;
+import org.globsframework.serialisation.field.reader.GlobTypeIndexResolver;
 import org.globsframework.serialisation.model.FieldNumber_;
+import org.globsframework.serialisation.model.GlobTypeNumber;
+import org.globsframework.serialisation.model.GlobTypeNumber_;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,7 +31,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.booleanField, true);
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -43,7 +44,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.booleanArrayField, new boolean[]{true, false, true});
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -56,7 +57,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.intField, 2);
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -69,7 +70,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.intArrayField, new int[]{10, 20, 30, 40, 50});
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -82,7 +83,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.longField, 5L);
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -95,7 +96,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.longArrayField, new long[]{10L, 20L, 30L, 40L, 50L});
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -108,7 +109,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.doubleField, 10.0);
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -121,7 +122,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.doubleArrayField, new double[]{10.0, 20.0, 30.0, 40.0, 50.0});
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -134,7 +135,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.bigDecimalField, BigDecimal.valueOf(35.12));
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -151,7 +152,7 @@ public class BinReaderTest extends TestCase {
                 });
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -164,7 +165,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.strField, "a string");
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -177,7 +178,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.strArrayField, new String[]{"first string", "second string", "third string"});
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -190,7 +191,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.dateField, LocalDate.of(2022, Month.FEBRUARY, 16));
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -203,7 +204,7 @@ public class BinReaderTest extends TestCase {
                 .set(Proto1.dateTimeField, ZonedDateTime.now());
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -211,12 +212,17 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    private static GlobType createEmptyProto1Type() {
+        return GlobTypeBuilderFactory.create(Proto1.TYPE.getName())
+                .addAnnotation(GlobTypeNumber.create(1)).get();
+    }
+
     public void testBlob() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.blobField, "blabla".getBytes(StandardCharsets.UTF_8));
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -230,7 +236,7 @@ public class BinReaderTest extends TestCase {
                         .set(Proto1.intField, 2));
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -246,7 +252,7 @@ public class BinReaderTest extends TestCase {
                 });
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -260,7 +266,7 @@ public class BinReaderTest extends TestCase {
                         .set(Proto1.intField, 2));
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -278,7 +284,7 @@ public class BinReaderTest extends TestCase {
                 });
         check(p, p);
 
-        GlobType globType = GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
@@ -287,14 +293,19 @@ public class BinReaderTest extends TestCase {
     }
 
     private void check(Glob p, Glob ex) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        BinWriter binWriter = BinWriterFactory.create().create(byteArrayOutputStream);
+        final BinWriterFactory binWriterFactory = BinWriterFactory.create();
+        check(p, ex, binWriterFactory, new ByteArrayOutputStream());
+        check(p, ex, binWriterFactory, new ByteArrayOutputStream());
+    }
+
+    private static void check(Glob p, Glob ex, BinWriterFactory binWriterFactory, ByteArrayOutputStream byteArrayOutputStream) {
+        BinWriter binWriter = binWriterFactory.create(byteArrayOutputStream);
         binWriter.write(p);
 
         GlobType readType = ex.getType();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        BinReader binReader = BinReaderFactory.create().createGlobBinReader(GlobTypeResolver.from(readType));
-        Glob r = binReader.read(inputStream).get();
+        BinReader binReader = BinReaderFactory.create(GlobTypeIndexResolver.from(readType)).createGlobBinReader(inputStream);
+        Glob r = binReader.read().get();
 
         Field[] fields = r.getType().getFields();
         for (Field field : fields) {
@@ -315,6 +326,7 @@ public class BinReaderTest extends TestCase {
     }
 
     public static class Proto1 {
+        @GlobTypeNumber_(1)
         public static GlobType TYPE;
 
         @FieldNumber_(1)
@@ -370,6 +382,7 @@ public class BinReaderTest extends TestCase {
     }
 
     public static class Proto2 {
+        @GlobTypeNumber_(2)
         public static GlobType TYPE;
 
         @FieldNumber_(1)
