@@ -9,16 +9,14 @@ import org.globsframework.core.metamodel.fields.StringField;
 import org.globsframework.core.metamodel.impl.DefaultGlobModel;
 import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
 import org.globsframework.core.model.Glob;
-import org.globsframework.core.model.GlobFactoryService;
 import org.globsframework.core.utils.ReusableByteArrayOutputStream;
-import org.globsframework.core.utils.serialization.SerializedInput;
-import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
-import org.globsframework.core.utils.serialization.SerializedOutput;
-import org.globsframework.serialisation.glob.GlobBinWriter;
+import org.globsframework.serialisation.field.reader.GlobTypeIndexResolver;
 import org.globsframework.serialisation.model.FieldNumber;
+import org.globsframework.serialisation.model.GlobTypeNumber;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +33,7 @@ public class PerfReadWriteTest {
     @Test
     public void perfStandard() throws IOException {
         GlobTypeBuilder globTypeBuilder = DefaultGlobTypeBuilder.init("perf");
+        globTypeBuilder.addAnnotation(GlobTypeNumber.create(1));
         StringField str_1 = globTypeBuilder.declareStringField("str_1", FieldNumber.create(1));
         StringField str_2 = globTypeBuilder.declareStringField("str_2", FieldNumber.create(2));
         IntegerField anInt = globTypeBuilder.declareIntegerField("anInt", FieldNumber.create(3));
@@ -75,11 +74,12 @@ public class PerfReadWriteTest {
         long start = System.nanoTime();
         ReusableByteArrayOutputStream outputStream = null;
         outputStream = new ReusableByteArrayOutputStream();
+        final BinWriterFactory binWriterFactory = BinWriterFactory.create();
         for (int i = 0; i < 1000; i++) {
             outputStream.reset();
-            final SerializedOutput init = SerializedInputOutputFactory.init(outputStream);
+            BinWriter binWriter = binWriterFactory.create(outputStream);
             for (Glob glob : collect) {
-                init.writeGlob(glob);
+                binWriter.write(glob);
             }
         }
         long end = System.nanoTime();
@@ -90,10 +90,12 @@ public class PerfReadWriteTest {
     private void readBin(byte[] s, DefaultGlobModel globTypes) {
         long start = System.nanoTime();
         Glob[] globs = new Glob[1000];
+        final BinReaderFactory binReaderFactory =
+                BinReaderFactory.create(GlobTypeIndexResolver.from(globTypes.getAll()));
         for (int i = 0; i < 1000; i++) {
-            SerializedInput input = SerializedInputOutputFactory.init(s);
+            BinReader binReader = binReaderFactory.createGlobBinReader(new ByteArrayInputStream(s));
             for (int j = 0; j < 1000; j++) {
-                globs[j] = input.readGlob(globTypes);
+                globs[j] = binReader.read().orElse(null);
             }
             Assert.assertEquals(globs.length, 1000);
         }
@@ -105,6 +107,7 @@ public class PerfReadWriteTest {
     @Test
     public void perf() {
         GlobTypeBuilder globTypeBuilder = DefaultGlobTypeBuilder.init("perf");
+        globTypeBuilder.addAnnotation(GlobTypeNumber.create(1));
         StringField str_1 = globTypeBuilder.declareStringField("str_1", FieldNumber.create(1));
         StringField str_2 = globTypeBuilder.declareStringField("str_2", FieldNumber.create(2));
         IntegerField anInt = globTypeBuilder.declareIntegerField("anInt", FieldNumber.create(3));
@@ -121,7 +124,7 @@ public class PerfReadWriteTest {
                                 .set(aDouble, i))
                 .collect(Collectors.toList());
         DefaultGlobModel globTypes = new DefaultGlobModel(AllCoreAnnotations.MODEL, globType);
-        BinReader globBinReader = BinReaderFactory.create().createGlobBinReader(globTypes);
+        final BinReaderFactory binReaderFactory = BinReaderFactory.create(GlobTypeIndexResolver.from(globTypes.getAll()));
         BinWriterFactory binWriterFactory = BinWriterFactory.create();
         byte[] s;
         write(collect, binWriterFactory);
@@ -131,14 +134,14 @@ public class PerfReadWriteTest {
         write(collect, binWriterFactory);
         write(collect, binWriterFactory);
         s = write(collect, binWriterFactory);
-        read(globBinReader, s);
-        read(globBinReader, s);
-        read(globBinReader, s);
-        read(globBinReader, s);
-        read(globBinReader, s);
-        read(globBinReader, s);
-        read(globBinReader, s);
-        read(globBinReader, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
+        read(binReaderFactory, s);
     }
 
     /*
@@ -169,11 +172,11 @@ LENOVO :
    read 126.594838ms => 7899216.238185004 objects/s
 
      */
-    private void read(BinReader binReader, byte[] s) {
+    private void read(BinReaderFactory binReader, byte[] s) {
         long start = System.nanoTime();
         Glob[] globs = new Glob[0];
         for (int i = 0; i < 1000; i++) {
-            globs = binReader.readArray(s);
+            globs = binReader.createGlobBinReader(new ByteArrayInputStream(s)).readArray();
             Assert.assertEquals(globs.length, 1000);
         }
         long end = System.nanoTime();

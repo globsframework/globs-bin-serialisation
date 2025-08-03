@@ -1,5 +1,6 @@
 package org.globsframework.serialisation;
 
+import org.globsframework.core.utils.serialization.SerializedOutput;
 import org.globsframework.serialisation.glob.GlobBinWriter;
 import org.globsframework.serialisation.glob.type.manager.DefaultGlobTypeFieldWritersManager;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
@@ -21,4 +22,7 @@ public class BinWriterFactory {
         return new GlobBinWriter(outputStream, globTypeFieldWritersManager);
     }
 
+    public BinWriter create(SerializedOutput serializedOutput) {
+        return new GlobBinWriter(serializedOutput, globTypeFieldWritersManager);
+    }
 }

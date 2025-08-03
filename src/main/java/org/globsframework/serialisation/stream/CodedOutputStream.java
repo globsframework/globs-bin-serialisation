@@ -16,6 +16,10 @@ public class CodedOutputStream {
         this.serializedOutput = serializedOutput;
     }
 
+    public static CodedOutputStream newInstance(SerializedOutput serializedOutput) {
+        return new CodedOutputStream(serializedOutput);
+    }
+
     public static CodedOutputStream newInstance(OutputStream outputStream) {
         return new CodedOutputStream(SerializedInputOutputFactory.init(outputStream));
     }
@@ -24,13 +28,17 @@ public class CodedOutputStream {
         serializedOutput.write(value);
     }
 
-    public void writeStartGlob(String typeName) {
+    public void writeStartGlob(int typeNumber) {
         serializedOutput.write(WireConstants.makeTag(0, WireConstants.Type.START_GLOB));
-        serializedOutput.writeUtf8String(typeName);
+        serializedOutput.write(typeNumber);
     }
 
     public void writeEndGlob() {
         serializedOutput.write(WireConstants.makeTag(0, WireConstants.Type.END_GLOB));
+    }
+
+    public void writeNull() {
+        serializedOutput.write(WireConstants.makeTag(0, WireConstants.Type.NULL));
     }
 
     public void writeNull(int fieldNumber) {

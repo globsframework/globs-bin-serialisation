@@ -8,17 +8,15 @@ import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
 public class GlobUnionFieldWriter implements FieldWriter {
-    private final BinWriter binWriter;
     private final int fieldNumber;
     private final GlobUnionField field;
 
-    public GlobUnionFieldWriter(BinWriter binWriter, int fieldNumber, GlobUnionField field) {
-        this.binWriter = binWriter;
+    public GlobUnionFieldWriter(int fieldNumber, GlobUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
     }
 
-    public void write(CodedOutputStream codedOutputStream, FieldValuesAccessor data) {
+    public void write(CodedOutputStream codedOutputStream, FieldValuesAccessor data, BinWriter binWriter) {
         if (!data.isSet(field)) {
             return;
         }
