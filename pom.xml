@@ -35,6 +35,8 @@
     </repositories>
 
     <scm>
+        <connection>scm:git:git@github.com:globsframework/globs-bin-serialisation</connection>
+        <developerConnection>scm:git:git@github.com:globsframework/globs-bin-serialisation</developerConnection>
         <url>https://github.com/globsframework/globs-bin-serialisation</url>
     </scm>
 
