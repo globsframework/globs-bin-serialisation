@@ -28,9 +28,8 @@ public class CodedOutputStream {
         serializedOutput.write(value);
     }
 
-    public void writeStartGlob(int typeNumber) {
+    public void writeStartGlob() {
         serializedOutput.write(WireConstants.makeTag(0, WireConstants.Type.START_GLOB));
-        serializedOutput.write(typeNumber);
     }
 
     public void writeEndGlob() {

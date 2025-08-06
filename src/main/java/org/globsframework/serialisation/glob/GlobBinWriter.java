@@ -35,7 +35,7 @@ public class GlobBinWriter implements BinWriter {
 
             GlobTypeFieldWriters globTypeFieldWriters = globTypeFieldWritersManager.getOrCreate(globType);
 
-            codedOutputStream.writeStartGlob(globTypeFieldWriters.getGlobIndex());
+            codedOutputStream.writeStartGlob();
             for (FieldWriter fieldWriter : globTypeFieldWriters.getFieldWriters()) {
                 fieldWriter.write(codedOutputStream, glob, this);
             }

@@ -1,28 +1,55 @@
 package org.globsframework.serialisation.field.reader;
 
-import org.globsframework.core.metamodel.GlobTypeResolver;
+import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.core.metamodel.fields.GlobArrayUnionField;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.MutableGlob;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
+import org.globsframework.serialisation.model.UnionType;
 import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.security.InvalidParameterException;
+import java.util.Collection;
 
 public class GlobArrayUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayUnionFieldReader.class);
     private final Integer fieldNumber;
     private final GlobArrayUnionField field;
-    private final GlobTypeIndexResolver resolver;
+    private final GlobType[] types;
 
     public GlobArrayUnionFieldReader(Integer fieldNumber, GlobArrayUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
-        resolver = GlobTypeIndexResolver.from(field.getTargetTypes());
+        types = initTypesByIndex(field, field.getTargetTypes());
+    }
+
+    public static GlobType[] initTypesByIndex(Field field, Collection<GlobType> targetTypes) {
+        final GlobType[] types;
+        final Glob annotation = field.getAnnotation(UnionType.UNIQUE_KEY);
+        final Glob[] mappings = annotation.getOrEmpty(UnionType.mapping);
+        int max = 0;
+        for (int i = 0; i < mappings.length; i++) {
+            max = Math.max(max, mappings[i].get(UnionType.ChoiceType.index));
+        }
+        types = new GlobType[max + 1];
+        for (int i = 0; i < mappings.length; i++) {
+            boolean found = false;
+            for (GlobType targetType : targetTypes) {
+                if (targetType.getName().equals(mappings[i].get(UnionType.ChoiceType.typeName))) {
+                    types[mappings[i].get(UnionType.ChoiceType.index)] = targetType;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                throw new InvalidParameterException("Type " + mappings[i].get(UnionType.ChoiceType.typeName) + " not found");
+            }
+        }
+        return types;
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
@@ -34,8 +61,14 @@ public class GlobArrayUnionFieldReader implements FieldReader {
                 int size = inputStream.readInt();
                 Glob[] globs = new Glob[size];
                 for (int index = 0; index < size; index++) {
-                    final Glob glob = inputStream.readGlob(resolver);
-                    globs[index] = glob;
+                    int typeIndex = inputStream.readInt();
+                    if (typeIndex != -1) {
+                        final Glob glob = inputStream.readGlob(typeIndex >= types.length ? null : types[typeIndex]);
+                        globs[index] = glob;
+                    }
+//                    else {
+//                        globs[index] = null;
+//                    }
                 }
                 data.set(field, globs);
                 break;

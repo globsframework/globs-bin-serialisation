@@ -10,8 +10,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
 @Target({ElementType.FIELD})
-public @interface GlobTypeNumber_ {
-    int value();
+public @interface UnionType_ {
+    ChoiceType_[] value();
 
-    GlobType TYPE = GlobTypeNumber.TYPE;
+    GlobType TYPE = UnionType.TYPE;
+
+    @interface ChoiceType_ {
+        Class<?> value();
+        int index();
+    }
 }

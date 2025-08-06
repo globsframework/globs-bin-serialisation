@@ -1,5 +1,6 @@
 package org.globsframework.serialisation.field.reader;
 
+import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.fields.GlobUnionField;
 import org.globsframework.core.model.MutableGlob;
 import org.globsframework.serialisation.WireConstants;
@@ -12,12 +13,12 @@ public class GlobUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobUnionFieldReader.class);
     private final Integer fieldNumber;
     private final GlobUnionField field;
-    private final GlobTypeIndexResolver resolver;
+    private final GlobType[] types;
 
     public GlobUnionFieldReader(Integer fieldNumber, GlobUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
-        resolver = GlobTypeIndexResolver.from(field.getTargetTypes());
+        types = GlobArrayUnionFieldReader.initTypesByIndex(field, field.getTargetTypes());
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
@@ -26,7 +27,8 @@ public class GlobUnionFieldReader implements FieldReader {
                 data.set(field, null);
                 break;
             case WireConstants.Type.GLOB_UNION:
-                data.set(field, inputStream.readGlob(resolver));
+                int typeIndex = inputStream.readInt();
+                data.set(field, inputStream.readGlob(typeIndex >= types.length ? null : types[typeIndex]));
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

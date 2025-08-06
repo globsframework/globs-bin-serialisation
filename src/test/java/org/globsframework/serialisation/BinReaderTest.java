@@ -4,16 +4,16 @@ import junit.framework.TestCase;
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.GlobTypeBuilderFactory;
 import org.globsframework.core.metamodel.GlobTypeLoaderFactory;
-import org.globsframework.core.metamodel.GlobTypeResolver;
 import org.globsframework.core.metamodel.annotations.Target;
 import org.globsframework.core.metamodel.annotations.Targets;
 import org.globsframework.core.metamodel.fields.*;
+import org.globsframework.core.metamodel.type.GlobUnionFieldType;
 import org.globsframework.core.model.Glob;
-import org.globsframework.serialisation.field.reader.GlobTypeIndexResolver;
-import org.globsframework.serialisation.model.FieldNumber_;
-import org.globsframework.serialisation.model.GlobTypeNumber;
-import org.globsframework.serialisation.model.GlobTypeNumber_;
+import org.globsframework.core.model.MutableGlob;
+import org.globsframework.serialisation.model.*;
+import org.junit.Assert;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public class BinReaderTest extends TestCase {
 
@@ -213,8 +214,21 @@ public class BinReaderTest extends TestCase {
     }
 
     private static GlobType createEmptyProto1Type() {
+        return GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+    }
+
+    private static GlobType createPartialProto1Type() {
         return GlobTypeBuilderFactory.create(Proto1.TYPE.getName())
-                .addAnnotation(GlobTypeNumber.create(1)).get();
+                .addUnionGlobArrayField(Proto1.globArrayUnionField.getName(),
+                        List.of(Proto1.globArrayUnionField.getAnnotation(FieldNumber.KEY),
+                                UnionType.TYPE.instantiate()
+                                        .set(UnionType.mapping, new Glob[]{
+                                                UnionType.ChoiceType.TYPE.instantiate()
+                                                        .set(UnionType.ChoiceType.index, 2)
+                                                        .set(UnionType.ChoiceType.index, 2)
+                                                        .set(UnionType.ChoiceType.typeName, Proto2.TYPE.getName())
+                                        })), List.of(Proto2.TYPE))
+                .get();
     }
 
     public void testBlob() throws IOException {
@@ -274,6 +288,48 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    public void testGlobUnionWithPartial() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayUnionField, new Glob[]{Proto1.TYPE.instantiate()
+                        .set(Proto1.intField, 2),
+                        Proto2.TYPE.instantiate()
+                                .set(Proto2.booleanField, false)});
+        check(p, p);
+
+        final GlobType globType = createPartialProto1Type();
+
+        final BinWriterFactory binWriterFactory = BinWriterFactory.create();
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        BinWriter binWriter = binWriterFactory.create(byteArrayOutputStream);
+        binWriter.write(p);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        BinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
+        Glob r = binReader.read(globType).get();
+        final GlobArrayUnionField globUnionField = globType.getField(Proto1.globArrayUnionField.getName()).asGlobArrayUnionField();
+        Assert.assertTrue(r.isSet(globUnionField));
+        final Glob[] actual = r.get(globUnionField);
+        Assert.assertEquals(2, actual.length);
+        Assert.assertNull(actual[0]);
+        Assert.assertNotNull(actual[1]);
+    }
+
+    public void testGlobArrayWithNull() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayUnionField, new Glob[]{
+                        null,
+                        Proto2.TYPE.instantiate()
+                                .set(Proto2.booleanField, true)
+                });
+        check(p, p);
+
+        final GlobType globType = createEmptyProto1Type();
+        check(p, globType.instantiate());
+
+        Glob withNull = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayField, null);
+        check(withNull, withNull);
+    }
+
     public void testGlobArrayUnion() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.globArrayUnionField, new Glob[]{
@@ -304,10 +360,10 @@ public class BinReaderTest extends TestCase {
 
         GlobType readType = ex.getType();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        BinReader binReader = BinReaderFactory.create(GlobTypeIndexResolver.from(readType)).createGlobBinReader(inputStream);
-        Glob r = binReader.read().get();
+        BinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
+        Glob r = binReader.read(readType).get();
 
-        Field[] fields = r.getType().getFields();
+        Field[] fields = readType.getFields();
         for (Field field : fields) {
             assertEquals(ex.isSet(field), r.isSet(field));
             Object value1 = ex.getValue(field);
@@ -326,7 +382,6 @@ public class BinReaderTest extends TestCase {
     }
 
     public static class Proto1 {
-        @GlobTypeNumber_(1)
         public static GlobType TYPE;
 
         @FieldNumber_(1)
@@ -370,10 +425,16 @@ public class BinReaderTest extends TestCase {
 
         @Targets({Proto1.class, Proto2.class})
         @FieldNumber_(18)
+        @UnionType_({
+                @UnionType_.ChoiceType_(value = Proto1.class, index = 1),
+                @UnionType_.ChoiceType_(value = Proto2.class, index = 2)})
         public static GlobUnionField globUnionField;
 
         @Targets({Proto1.class, Proto2.class})
         @FieldNumber_(19)
+        @UnionType_({
+                @UnionType_.ChoiceType_(value = Proto1.class, index = 1),
+                @UnionType_.ChoiceType_(value = Proto2.class, index = 2)})
         public static GlobArrayUnionField globArrayUnionField;
 
         static {
@@ -382,7 +443,6 @@ public class BinReaderTest extends TestCase {
     }
 
     public static class Proto2 {
-        @GlobTypeNumber_(2)
         public static GlobType TYPE;
 
         @FieldNumber_(1)
