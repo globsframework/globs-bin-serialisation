@@ -6,7 +6,6 @@ import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.utils.serialization.SerializedInput;
 import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
 import org.globsframework.serialisation.WireConstants;
-import org.globsframework.serialisation.field.reader.GlobTypeIndexResolver;
 import org.globsframework.serialisation.glob.GlobInstantiator;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
@@ -89,7 +88,6 @@ public class CodedInputStream {
                 readUtf8String();
                 break;
             case WireConstants.Type.START_GLOB:
-                readInt();
                 break;
             case WireConstants.Type.STRING_ARRAY:
                 readStringArray();
@@ -104,16 +102,29 @@ public class CodedInputStream {
                 readBytes();
                 break;
             case WireConstants.Type.GLOB:
-            case WireConstants.Type.GLOB_UNION:
                 skipGlobField();
                 break;
-            case WireConstants.Type.GLOB_ARRAY:
-            case WireConstants.Type.GLOB_UNION_ARRAY:
+            case WireConstants.Type.GLOB_UNION:
+                if (readInt() != -1) {
+                    skipGlobField();
+                }
+                break;
+            case WireConstants.Type.GLOB_ARRAY: {
                 int size = readInt();
                 for (int index = 0; index < size; index++) {
                     skipGlobField();
                 }
                 break;
+            }
+            case WireConstants.Type.GLOB_UNION_ARRAY: {
+                int size = readInt();
+                for (int index = 0; index < size; index++) {
+                    if (readInt() != -1) {
+                        skipGlobField();
+                    }
+                }
+                break;
+            }
             default:
                 throw new RuntimeException("type " + type + " not managed yet.");
         }
@@ -214,7 +225,7 @@ public class CodedInputStream {
         return serializedInput.readBytes();
     }
 
-    public Glob readGlob(GlobTypeIndexResolver typeResolver) {
+    public Glob readGlob(GlobType globType) {
         int tag = readTag();
         final int wireType = WireConstants.getTagWireType(tag);
         if (wireType == WireConstants.Type.NULL) {
@@ -223,9 +234,6 @@ public class CodedInputStream {
         if (wireType != WireConstants.Type.START_GLOB) {
             throw new RuntimeException("Expecting Glob but got " + tag + " : " + wireType);
         }
-
-        int typeIndex = readInt();
-        GlobType globType = typeResolver.fromIndex(typeIndex);
 
         if (globType != null) {
             return readGlob(globType, globTypeFieldReadersManager.getOrCreate(globType));

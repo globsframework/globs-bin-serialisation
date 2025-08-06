@@ -7,7 +7,6 @@ import org.globsframework.serialisation.field.writer.FieldWriterVisitorCreator;
 import org.globsframework.serialisation.field.writer.NullFieldWriter;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.model.FieldNumber;
-import org.globsframework.serialisation.model.GlobTypeNumber;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +18,6 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
     }
 
     public GlobTypeFieldWriters create(GlobType type) {
-        final Integer index = type.getAnnotation(GlobTypeNumber.KEY).get(GlobTypeNumber.globTypeNumber);
         Field[] fields = type.getFields();
         List<FieldWriter> fieldWriters = new ArrayList<>();
 
@@ -43,7 +41,7 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
             realFieldWriters[fieldWriter.getFieldNumber()] = fieldWriter;
         }
 
-        return new GlobTypeFieldWriters(index, realFieldWriters);
+        return new GlobTypeFieldWriters(realFieldWriters);
     }
 
 }
