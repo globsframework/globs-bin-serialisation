@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <artifactId>globs-bin-serialisation</artifactId>
     <name>Generic Lightweight ObjectS binary serialisation</name>
-    <version>4.3.0</version>
+    <version>4.4-SNAPSHOT</version>
 
     <developers>
         <developer>
@@ -37,7 +37,7 @@
         <connection>scm:git:git@github.com:globsframework/globs-bin-serialisation</connection>
         <developerConnection>scm:git:git@github.com:globsframework/globs-bin-serialisation</developerConnection>
         <url>https://github.com/globsframework/globs-bin-serialisation</url>
-      <tag>4.3.0</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <profiles>
