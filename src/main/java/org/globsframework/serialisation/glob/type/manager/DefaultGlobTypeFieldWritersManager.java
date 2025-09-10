@@ -8,11 +8,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultGlobTypeFieldWritersManager implements GlobTypeFieldWritersManager {
-    private final Map<String, GlobTypeFieldWriters> writersMap = new ConcurrentHashMap<>();
+    private final Map<GlobType, GlobTypeFieldWriters> writersMap = new ConcurrentHashMap<>();
     private final DefaultGlobTypeFieldWritersFactory factory = new DefaultGlobTypeFieldWritersFactory();
 
     public GlobTypeFieldWriters getOrCreate(GlobType globType) {
-        return writersMap.computeIfAbsent(globType.getName(), s -> factory.create(globType));
+        return writersMap.computeIfAbsent(globType, factory::create);
     }
-
 }

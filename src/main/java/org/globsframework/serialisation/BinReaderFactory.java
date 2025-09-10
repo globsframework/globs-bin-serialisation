@@ -1,8 +1,8 @@
 package org.globsframework.serialisation;
 
+import org.globsframework.core.model.GlobInstantiator;
 import org.globsframework.core.utils.serialization.SerializedInput;
 import org.globsframework.serialisation.glob.GlobBinReader;
-import org.globsframework.serialisation.glob.GlobInstantiator;
 import org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldReadersFactory;
 import org.globsframework.serialisation.glob.type.manager.DefaultGlobTypeFieldReadersManager;
 
@@ -19,7 +19,7 @@ public class BinReaderFactory {
         return new BinReaderFactory();
     }
 
-    public BinReader createGlobBinReader(InputStream  inputStream) {
+    public BinReader createGlobBinReader(InputStream inputStream) {
         return new GlobBinReader(globTypeFieldReadersManager, inputStream);
     }
 
@@ -27,7 +27,7 @@ public class BinReaderFactory {
         return new GlobBinReader(globTypeFieldReadersManager, serializedInput);
     }
 
-    public BinReader createGlobBinReader(GlobInstantiator globInstantiator,  SerializedInput serializedInput) {
+    public BinReader createGlobBinReader(GlobInstantiator globInstantiator, SerializedInput serializedInput) {
         return new GlobBinReader(globInstantiator, globTypeFieldReadersManager, serializedInput);
     }
 }

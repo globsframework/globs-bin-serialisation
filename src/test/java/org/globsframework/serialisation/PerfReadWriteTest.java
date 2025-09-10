@@ -8,6 +8,8 @@ import org.globsframework.core.metamodel.fields.StringField;
 import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.utils.ReusableByteArrayOutputStream;
+import org.globsframework.core.utils.serialization.ByteOutputInBytes;
+import org.globsframework.core.utils.serialization.DefaultSerializationOutput;
 import org.globsframework.serialisation.model.FieldNumber;
 import org.junit.Assert;
 import org.junit.Test;
@@ -145,8 +147,12 @@ public class PerfReadWriteTest {
         ReusableByteArrayOutputStream outputStream = new ReusableByteArrayOutputStream();
         for (int i = 0; i < 1000; i++) {
             outputStream = new ReusableByteArrayOutputStream();
-            BinWriter binWriter = writerFactory.create(outputStream);
+//            final Output output = new Output(outputStream);
+//            BinWriter binWriter = writerFactory.create(new KryoSerializationOutput(output));
+            final ByteOutputInBytes output = new ByteOutputInBytes(outputStream);
+            BinWriter binWriter = writerFactory.create(new DefaultSerializationOutput(output));
             binWriter.write(collect);
+            output.flush();
         }
         long end = System.nanoTime();
         System.out.println("write " + (end - start) / 1000000. + "ms size : " + outputStream.size() + " s=" + new String(outputStream.getBuffer(), 0, 10));  // 1100ms puis 600ms
@@ -168,6 +174,7 @@ LENOVO :
         Glob[] globs = new Glob[0];
         for (int i = 0; i < 1000; i++) {
             globs = binReader.createGlobBinReader(new ByteArrayInputStream(s)).readArray(globType);
+//            globs = binReader.createGlobBinReader(new KryoSerializationInput(new Input(s))).readArray(globType);
             Assert.assertEquals(globs.length, 1000);
         }
         long end = System.nanoTime();

@@ -2,6 +2,7 @@ package org.globsframework.serialisation.glob;
 
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.model.Glob;
+import org.globsframework.core.model.GlobInstantiator;
 import org.globsframework.core.utils.serialization.SerializedInput;
 import org.globsframework.serialisation.BinReader;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
@@ -13,7 +14,7 @@ import java.util.Optional;
 public class GlobBinReader implements BinReader {
     private final CodedInputStream codedInputStream;
 
-    public GlobBinReader(GlobTypeFieldReadersManager globTypeFieldReadersManager, InputStream  inputStream) {
+    public GlobBinReader(GlobTypeFieldReadersManager globTypeFieldReadersManager, InputStream inputStream) {
         codedInputStream = CodedInputStream.newInstance(globTypeFieldReadersManager, inputStream);
     }
 
@@ -31,7 +32,7 @@ public class GlobBinReader implements BinReader {
 
     public Glob[] readArray(GlobType type) {
         int size = codedInputStream.readInt();
-        Glob[] elements = new  Glob[size];
+        Glob[] elements = new Glob[size];
         for (int i = 0; i < size; i++) {
             elements[i] = codedInputStream.readGlob(type);
         }
