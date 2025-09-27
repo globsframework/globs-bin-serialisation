@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public class BinReaderTest extends TestCase {
 
@@ -256,6 +257,22 @@ public class BinReaderTest extends TestCase {
         Glob withNull = Proto1.TYPE.instantiate()
                 .set(Proto1.globField, null);
         check(withNull, withNull);
+    }
+
+    public void testSkip() {
+        Glob p1 = Proto1.TYPE.instantiate().set(Proto1.intField, 1);
+        Glob p2 = Proto1.TYPE.instantiate().set(Proto1.intField, 2);
+        final BinWriterFactory binWriterFactory = BinWriterFactory.create();
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        BinWriter binWriter = binWriterFactory.create(byteArrayOutputStream);
+        binWriter.write(p1);
+        binWriter.write(p2);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        BinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
+        Assert.assertTrue(binReader.read(null).isEmpty());
+        final Optional<Glob> read = binReader.read(Proto1.TYPE);
+        Assert.assertTrue(read.isPresent());
+        Assert.assertEquals(2, read.get().getValue(Proto1.intField));
     }
 
     public void testGlobArray() throws IOException {

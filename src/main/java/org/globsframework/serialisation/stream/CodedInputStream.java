@@ -245,7 +245,7 @@ public class CodedInputStream {
                 if (tagWireType == END_GLOB) {
                     return null;
                 }
-                skipField(tag);
+                skipField(fieldTag);
             }
         }
     }
