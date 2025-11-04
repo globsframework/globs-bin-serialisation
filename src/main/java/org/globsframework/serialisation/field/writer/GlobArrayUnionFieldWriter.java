@@ -3,8 +3,8 @@ package org.globsframework.serialisation.field.writer;
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.core.metamodel.fields.GlobArrayUnionField;
-import org.globsframework.core.model.FieldValuesAccessor;
 import org.globsframework.core.model.Glob;
+import org.globsframework.core.model.globaccessor.get.GlobGetGlobArrayAccessor;
 import org.globsframework.serialisation.BinWriter;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.model.UnionType;
@@ -19,27 +19,27 @@ public class GlobArrayUnionFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobArrayUnionField field;
     private final Map<GlobType, Integer> types;
+    private final GlobGetGlobArrayAccessor getAccessor;
 
     public GlobArrayUnionFieldWriter(int fieldNumber, GlobArrayUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
         types = initTypesByIndex(field, field.getTargetTypes());
+        getAccessor = field.getGlobType().getGetAccessor(field);
     }
 
-    public void write(CodedOutputStream codedOutputStream, FieldValuesAccessor data, BinWriter binWriter) {
-        if (!data.isSet(field)) {
-            return;
-        }
-        Glob[] globs = data.get(field);
+    public void write(CodedOutputStream codedOutputStream, Glob data, BinWriter binWriter) {
+        Glob[] globs = getAccessor.get(data);
         if (globs == null) {
-            codedOutputStream.writeNull(fieldNumber);
+            if (getAccessor.isSet(data)) {
+                codedOutputStream.writeNull(fieldNumber);
+            }
         } else {
             codedOutputStream.writeGlobArrayUnion(fieldNumber, globs.length);
             for (Glob glob : globs) {
                 if (glob == null) {
                     codedOutputStream.writeInt(-1);
-                }
-                else {
+                } else {
                     final Integer index = types.get(glob.getType());
                     if (index == null) {
                         throw new RuntimeException("Unsupported glob type " + glob.getType() + " in " + field.getFullName());

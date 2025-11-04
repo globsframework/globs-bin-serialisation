@@ -5,6 +5,7 @@ import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.core.metamodel.fields.GlobArrayUnionField;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.MutableGlob;
+import org.globsframework.core.model.globaccessor.set.GlobSetGlobArrayAccessor;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.model.UnionType;
@@ -20,10 +21,12 @@ public class GlobArrayUnionFieldReader implements FieldReader {
     private final Integer fieldNumber;
     private final GlobArrayUnionField field;
     private final GlobType[] types;
+    private final GlobSetGlobArrayAccessor setAccessor;
 
     public GlobArrayUnionFieldReader(Integer fieldNumber, GlobArrayUnionField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
+        setAccessor = field.getGlobType().getSetAccessor(field);
         types = initTypesByIndex(field, field.getTargetTypes());
     }
 
@@ -55,7 +58,7 @@ public class GlobArrayUnionFieldReader implements FieldReader {
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
         switch (tagWireType) {
             case WireConstants.Type.NULL:
-                data.set(field, null);
+                setAccessor.set(data, null);
                 break;
             case WireConstants.Type.GLOB_UNION_ARRAY:
                 int size = inputStream.readInt();
@@ -66,11 +69,8 @@ public class GlobArrayUnionFieldReader implements FieldReader {
                         final Glob glob = inputStream.readGlob(typeIndex >= types.length ? null : types[typeIndex]);
                         globs[index] = glob;
                     }
-//                    else {
-//                        globs[index] = null;
-//                    }
                 }
-                data.set(field, globs);
+                setAccessor.set(data, globs);
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

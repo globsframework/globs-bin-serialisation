@@ -71,7 +71,7 @@ public class FieldReaderVisitorCreator extends FieldVisitor.AbstractFieldVisitor
     }
 
     public void visitBlob(BlobField field) {
-        fieldReaders.add(new BlobFieldReader(fieldNumber, field));
+        fieldReaders.add(new BytesFieldReader(fieldNumber, field));
     }
 
     public void visitGlob(GlobField field) {
