@@ -232,16 +232,16 @@ public class BinReaderTest extends TestCase {
                 .get();
     }
 
-    public void testBlob() throws IOException {
+    public void testBytes() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
-                .set(Proto1.blobField, "blabla".getBytes(StandardCharsets.UTF_8));
+                .set(Proto1.BytesField, "blabla".getBytes(StandardCharsets.UTF_8));
         check(p, p);
 
         final GlobType globType = createEmptyProto1Type();
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
-                .set(Proto1.blobField, null);
+                .set(Proto1.BytesField, null);
         check(withNull, withNull);
     }
 
@@ -430,7 +430,7 @@ public class BinReaderTest extends TestCase {
         @FieldNumber_(14)
         public static DateTimeField dateTimeField;
         @FieldNumber_(15)
-        public static BlobField blobField;
+        public static BytesField BytesField;
 
         @Target(Proto1.class)
         @FieldNumber_(16)

@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.field.writer;
 
-import org.globsframework.core.metamodel.fields.BlobField;
+import org.globsframework.core.metamodel.fields.BytesField;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.globaccessor.get.GlobGetBytesAccessor;
 import org.globsframework.serialisation.BinWriter;
@@ -11,7 +11,7 @@ public class BytesFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetBytesAccessor getAccessor;
 
-    public BytesFieldWriter(Integer fieldNumber, BlobField field) {
+    public BytesFieldWriter(Integer fieldNumber, BytesField field) {
         this.fieldNumber = fieldNumber;
         getAccessor = field.getGlobType().getGetAccessor(field);
     }

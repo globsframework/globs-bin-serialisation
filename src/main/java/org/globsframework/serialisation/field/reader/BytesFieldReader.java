@@ -1,6 +1,6 @@
 package org.globsframework.serialisation.field.reader;
 
-import org.globsframework.core.metamodel.fields.BlobField;
+import org.globsframework.core.metamodel.fields.BytesField;
 import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.model.globaccessor.set.GlobSetBytesAccessor;
 import org.globsframework.serialisation.WireConstants;
@@ -9,10 +9,10 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 
 public class BytesFieldReader implements FieldReader {
     private final int fieldNumber;
-    private final BlobField field;
+    private final BytesField field;
     private final GlobSetBytesAccessor setAccessor;
 
-    public BytesFieldReader(int fieldNumber, BlobField field) {
+    public BytesFieldReader(int fieldNumber, BytesField field) {
         this.fieldNumber = fieldNumber;
         this.field = field;
         setAccessor = field.getGlobType().getSetAccessor(field);

@@ -70,7 +70,7 @@ public class FieldWriterVisitorCreator extends FieldVisitor.AbstractFieldVisitor
         fieldWriters.add(new DateTimeFieldWriter(fieldNumber, field));
     }
 
-    public void visitBlob(BlobField field) {
+    public void visitBytes(BytesField field) {
         fieldWriters.add(new BytesFieldWriter(fieldNumber, field));
     }
 
