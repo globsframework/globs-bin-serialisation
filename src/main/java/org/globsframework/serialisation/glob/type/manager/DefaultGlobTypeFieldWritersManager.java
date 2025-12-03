@@ -2,16 +2,24 @@ package org.globsframework.serialisation.glob.type.manager;
 
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
-import org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldWritersFactory;
+import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldWritersFactory;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultGlobTypeFieldWritersManager implements GlobTypeFieldWritersManager {
-    private final Map<GlobType, GlobTypeFieldWriters> writersMap = new ConcurrentHashMap<>();
-    private final DefaultGlobTypeFieldWritersFactory factory = new DefaultGlobTypeFieldWritersFactory();
+    private final Map<GlobType, GlobTypeFieldWriters> preInit;
+    private final GlobTypeFieldWritersFactory globTypeFieldWritersFactory;
+
+    public DefaultGlobTypeFieldWritersManager(Map<GlobType, GlobTypeFieldWriters> preInit, GlobTypeFieldWritersFactory globTypeFieldWritersFactory) {
+        this.preInit = preInit;
+        this.globTypeFieldWritersFactory = globTypeFieldWritersFactory;
+    }
 
     public GlobTypeFieldWriters getOrCreate(GlobType globType) {
-        return writersMap.computeIfAbsent(globType, factory::create);
+        final GlobTypeFieldWriters globTypeFieldWriters = preInit.get(globType);
+        if (globTypeFieldWriters != null) {
+            return globTypeFieldWriters;
+        }
+        return globTypeFieldWritersFactory.create(globType);
     }
 }

@@ -7,6 +7,8 @@ import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.model.globaccessor.set.GlobSetGlobArrayAccessor;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
+import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
+import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldReadersFactory;
 import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +19,14 @@ public class GlobArrayFieldReader implements FieldReader {
     private final GlobArrayField field;
     private final GlobType targetType;
     private final GlobSetGlobArrayAccessor setAccessor;
+    private final GlobTypeFieldReaders globTypeFieldReaders;
 
-    public GlobArrayFieldReader(Integer fieldNumber, GlobArrayField field) {
+    public GlobArrayFieldReader(Integer fieldNumber, GlobArrayField field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
         this.fieldNumber = fieldNumber;
         this.field = field;
         setAccessor = field.getGlobType().getSetAccessor(field);
         targetType = field.getTargetType();
+        globTypeFieldReaders = globTypeFieldReadersFactory.create(targetType);
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
@@ -32,7 +36,7 @@ public class GlobArrayFieldReader implements FieldReader {
                 int size = inputStream.readInt();
                 Glob[] globs = new Glob[size];
                 for (int index = 0; index < size; index++) {
-                    final Glob glob = inputStream.readGlob(targetType);
+                    final Glob glob = inputStream.readGlob(targetType, globTypeFieldReaders);
                     globs[index] = glob;
                 }
                 setAccessor.set(data, globs);

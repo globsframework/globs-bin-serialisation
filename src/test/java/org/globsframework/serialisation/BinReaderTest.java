@@ -7,13 +7,12 @@ import org.globsframework.core.metamodel.GlobTypeLoaderFactory;
 import org.globsframework.core.metamodel.annotations.Target;
 import org.globsframework.core.metamodel.annotations.Targets;
 import org.globsframework.core.metamodel.fields.*;
-import org.globsframework.core.metamodel.type.GlobUnionFieldType;
 import org.globsframework.core.model.Glob;
-import org.globsframework.core.model.MutableGlob;
+import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
+import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
 import org.globsframework.serialisation.model.*;
 import org.junit.Assert;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,7 +23,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public class BinReaderTest extends TestCase {
 
@@ -264,15 +262,15 @@ public class BinReaderTest extends TestCase {
         Glob p2 = Proto1.TYPE.instantiate().set(Proto1.intField, 2);
         final BinWriterFactory binWriterFactory = BinWriterFactory.create();
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        BinWriter binWriter = binWriterFactory.create(byteArrayOutputStream);
+        BinWriter binWriter = binWriterFactory.createFromStream(byteArrayOutputStream);
         binWriter.write(p1);
         binWriter.write(p2);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        BinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
-        Assert.assertTrue(binReader.read(null).isEmpty());
-        final Optional<Glob> read = binReader.read(Proto1.TYPE);
-        Assert.assertTrue(read.isPresent());
-        Assert.assertEquals(2, read.get().getValue(Proto1.intField));
+        BinReader binReader = BinReaderFactory.create().createFromStream(inputStream);
+        Assert.assertNull(binReader.read(null));
+        final Glob read = binReader.read(Proto1.TYPE);
+        Assert.assertNotNull(read);
+        Assert.assertEquals(2, read.getValue(Proto1.intField));
     }
 
     public void testGlobArray() throws IOException {
@@ -317,11 +315,12 @@ public class BinReaderTest extends TestCase {
 
         final BinWriterFactory binWriterFactory = BinWriterFactory.create();
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        BinWriter binWriter = binWriterFactory.create(byteArrayOutputStream);
+        BinWriter binWriter = binWriterFactory.createFromStream(byteArrayOutputStream);
         binWriter.write(p);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        BinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
-        Glob r = binReader.read(globType).get();
+        BinReader binReader = BinReaderFactory.create().createFromStream(inputStream);
+        Glob r = binReader.read(globType);
+        assertNotNull(r);
         final GlobArrayUnionField globUnionField = globType.getField(Proto1.globArrayUnionField.getName()).asGlobArrayUnionField();
         Assert.assertTrue(r.isSet(globUnionField));
         final Glob[] actual = r.get(globUnionField);
@@ -372,14 +371,14 @@ public class BinReaderTest extends TestCase {
     }
 
     private static void check(Glob p, Glob ex, BinWriterFactory binWriterFactory, ByteArrayOutputStream byteArrayOutputStream) {
-        BinWriter binWriter = binWriterFactory.create(byteArrayOutputStream);
+        BinWriter binWriter = binWriterFactory.createFromStream(byteArrayOutputStream);
         binWriter.write(p);
 
         GlobType readType = ex.getType();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        BinReader binReader = BinReaderFactory.create().createGlobBinReader(inputStream);
-        Glob r = binReader.read(readType).get();
-
+        BinReader binReader = BinReaderFactory.create().createFromStream(inputStream);
+        Glob r = binReader.read(readType);
+        assertNotNull(r);
         Field[] fields = readType.getFields();
         for (Field field : fields) {
             assertEquals(ex.isSet(field), r.isSet(field));
@@ -396,6 +395,31 @@ public class BinReaderTest extends TestCase {
                 assertEquals(value1, r.getValue(field));
             }
         }
+    }
+
+    public void testUsingBuilder() {
+        final GlobTypeFieldWritersManager fieldWritersManager = GlobTypeFieldWritersManager.Builder.init()
+                .add(Proto1.TYPE)
+                .add(Proto2.TYPE)
+                .build();
+
+        final BinWriterFactory binWriterFactory = BinWriterFactory.create(fieldWritersManager);
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final BinWriter binWriter = binWriterFactory.createFromStream(outputStream);
+        final BinWriter.GlobWriter writer = binWriter.getWriter(Proto1.TYPE);
+        writer.write(Proto1.TYPE.instantiate()
+                .set(Proto1.intField, 1));
+
+        GlobTypeFieldReadersManager readersManager = GlobTypeFieldReadersManager.Builder.init()
+                .add(Proto1.TYPE)
+                .add(Proto2.TYPE)
+                .build();
+
+        BinReader binReader = BinReaderFactory.create(readersManager).createFromStream(new ByteArrayInputStream(outputStream.toByteArray()));
+        Glob read = binReader.read(Proto1.TYPE);
+        assertNotNull(read);
+        assertEquals(1, read.get(Proto1.intField).intValue());
+
     }
 
     public static class Proto1 {

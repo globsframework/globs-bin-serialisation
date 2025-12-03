@@ -10,7 +10,7 @@ public class GlobTypeFieldReaders {
         this.fieldReaders = fieldReaders;
     }
 
-    public FieldReader get(int fieldNumber) {
+    public final FieldReader get(int fieldNumber) {
         return fieldNumber < fieldReaders.length ? fieldReaders[fieldNumber] : UnknownFieldReader.INSTANCE;
     }
 }

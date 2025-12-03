@@ -2,11 +2,17 @@ package org.globsframework.serialisation;
 
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.model.Glob;
-
-import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 public interface BinReader {
-    Optional<Glob> read(GlobType type);
+    @Nullable Glob read(GlobType type);
 
-    Glob[] readArray(GlobType type);
+    @Nullable Glob[] readArray(GlobType type);
+
+    GlobReader getReader(GlobType type);
+
+    interface GlobReader {
+        @Nullable Glob read();
+        @Nullable Glob[] readArray();
+    }
 }

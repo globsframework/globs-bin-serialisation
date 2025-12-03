@@ -7,41 +7,57 @@ import org.globsframework.serialisation.field.writer.FieldWriterVisitorCreator;
 import org.globsframework.serialisation.field.writer.NullFieldWriter;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.model.FieldNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersFactory {
+    private static final Logger log = LoggerFactory.getLogger(DefaultGlobTypeFieldWritersFactory.class);
+    private final Map<GlobType, GlobTypeFieldWriters> containers;
 
-    public DefaultGlobTypeFieldWritersFactory() {
+    public DefaultGlobTypeFieldWritersFactory(Map<GlobType, GlobTypeFieldWriters> containers) {
+        this.containers = containers;
     }
 
-    public GlobTypeFieldWriters create(GlobType type) {
-        Field[] fields = type.getFields();
-        List<FieldWriter> fieldWriters = new ArrayList<>();
-
-        for (Field field : fields) {
-            field.findOptAnnotation(FieldNumber.KEY)
-                    .map(FieldNumber.fieldNumber)
-                    .ifPresent(fieldNumber -> field.safeAccept(
-                            new FieldWriterVisitorCreator(fieldNumber, fieldWriters)
-                    ));
+    public synchronized GlobTypeFieldWriters create(GlobType type) {
+        if (containers.containsKey(type)) {
+            return containers.get(type);
         }
 
-        int maxLen = fieldWriters.stream()
-                .map(FieldWriter::getFieldNumber)
-                .max(Integer::compareTo)
-                .orElse(0);
+        log.info("Creating writers for {}", type.getName());
 
+        Field[] fields = type.getFields();
+        final int maxLen = getGreatestID(fields);
         FieldWriter[] realFieldWriters = new FieldWriter[maxLen + 1];
+
+        final GlobTypeFieldWriters fieldWriters = new GlobTypeFieldWriters(realFieldWriters);
+        containers.put(type, fieldWriters);
+
         Arrays.fill(realFieldWriters, NullFieldWriter.INSTANCE);
 
-        for (FieldWriter fieldWriter : fieldWriters) {
-            realFieldWriters[fieldWriter.getFieldNumber()] = fieldWriter;
+        final FieldWriterVisitorCreator fieldWriterVisitorCreator =
+                new FieldWriterVisitorCreator(realFieldWriters, this);
+        for (Field field : fields) {
+            int ind = field.findOptAnnotation(FieldNumber.KEY)
+                    .map(FieldNumber.fieldNumber)
+                    .orElse(-1);
+            if (ind != -1) {
+                field.safeAccept(fieldWriterVisitorCreator, ind);
+            }
         }
 
-        return new GlobTypeFieldWriters(realFieldWriters);
+        return fieldWriters;
+    }
+
+    public static int getGreatestID(Field[] fields) {
+        int maxLen = 0;
+        for (Field field : fields) {
+            maxLen = Math.max(maxLen, field.findOptAnnotation(FieldNumber.KEY)
+                    .map(FieldNumber.fieldNumber)
+                    .orElse(-1));
+        }
+        return maxLen;
     }
 
 }

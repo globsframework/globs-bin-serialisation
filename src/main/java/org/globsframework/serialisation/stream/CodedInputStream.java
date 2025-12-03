@@ -9,6 +9,7 @@ import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -225,7 +226,7 @@ public class CodedInputStream {
         return serializedInput.readBytes();
     }
 
-    public Glob readGlob(GlobType globType) {
+    public @Nullable Glob readGlob(@Nullable GlobType globType, @Nullable GlobTypeFieldReaders fieldReaders) {
         int tag = readTag();
         final int wireType = WireConstants.getTagWireType(tag);
         if (wireType == WireConstants.Type.NULL) {
@@ -235,8 +236,8 @@ public class CodedInputStream {
             throw new RuntimeException("Expecting Glob but got " + tag + " : " + wireType);
         }
 
-        if (globType != null) {
-            return readGlob(globType, globTypeFieldReadersManager.getOrCreate(globType));
+        if (globType != null && fieldReaders != null) {
+            return _readGlob(globType, fieldReaders);
         } else {
             while (true) {
                 int fieldTag = readTag();
@@ -250,7 +251,7 @@ public class CodedInputStream {
         }
     }
 
-    private Glob readGlob(GlobType globType, GlobTypeFieldReaders globTypeFieldReaders) {
+    private Glob _readGlob(GlobType globType, GlobTypeFieldReaders globTypeFieldReaders) {
         MutableGlob data = globInstantiator.newGlob(globType);
         while (true) {
             int fieldTag = readTag();
