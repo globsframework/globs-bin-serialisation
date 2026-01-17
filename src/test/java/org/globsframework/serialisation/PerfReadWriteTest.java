@@ -38,7 +38,7 @@ public class PerfReadWriteTest {
         IntegerField anInt = globTypeBuilder.declareIntegerField("anInt", FieldNumber.create(3));
         DoubleField aDouble = globTypeBuilder.declareDoubleField("aDouble", FieldNumber.create(4));
 
-        GlobType globType = globTypeBuilder.get();
+        GlobType globType = globTypeBuilder.build();
 
         List<Glob> collect = IntStream.range(0, 1000)
                 .mapToObj(i ->
@@ -114,7 +114,7 @@ public class PerfReadWriteTest {
         IntegerField anInt = globTypeBuilder.declareIntegerField("anInt", FieldNumber.create(3));
         DoubleField aDouble = globTypeBuilder.declareDoubleField("aDouble", FieldNumber.create(4));
 
-        GlobType globType = globTypeBuilder.get();
+        GlobType globType = globTypeBuilder.build();
 
         List<Glob> collect = IntStream.range(0, 1000)
                 .mapToObj(i ->
@@ -124,8 +124,14 @@ public class PerfReadWriteTest {
                                 .set(anInt, i)
                                 .set(aDouble, i))
                 .collect(Collectors.toList());
-        final BinReaderFactory binReaderFactory = BinReaderFactory.create();
-        BinWriterFactory binWriterFactory = BinWriterFactory.create();
+        final GlobTypeFieldReadersManager fieldReadersManager = GlobTypeFieldReadersManager.Builder.init()
+                .add(globType)
+                .build();
+        final BinReaderFactory binReaderFactory = BinReaderFactory.create(fieldReadersManager);
+
+        final GlobTypeFieldWritersManager fieldWritersManager = GlobTypeFieldWritersManager.Builder.init()
+                .add(globType).build();
+        BinWriterFactory binWriterFactory = BinWriterFactory.create(fieldWritersManager);
         byte[] s;
         write(collect, binWriterFactory);
         write(collect, binWriterFactory);

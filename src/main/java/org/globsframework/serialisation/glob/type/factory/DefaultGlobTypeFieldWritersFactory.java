@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersFactory {
-    private static final Logger log = LoggerFactory.getLogger(DefaultGlobTypeFieldWritersFactory.class);
     private final Map<GlobType, GlobTypeFieldWriters> containers;
 
     public DefaultGlobTypeFieldWritersFactory(Map<GlobType, GlobTypeFieldWriters> containers) {
@@ -24,8 +23,6 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
         if (containers.containsKey(type)) {
             return containers.get(type);
         }
-
-        log.info("Creating writers for {}", type.getName());
 
         Field[] fields = type.getFields();
         final int maxLen = getGreatestID(fields);

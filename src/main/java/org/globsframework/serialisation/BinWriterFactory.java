@@ -1,28 +1,25 @@
 package org.globsframework.serialisation;
 
-import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.utils.serialization.SerializedOutput;
 import org.globsframework.serialisation.glob.GlobBinWriter;
-import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldWritersFactory;
 import org.globsframework.serialisation.glob.type.manager.DefaultGlobTypeFieldWritersManager;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
 
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public class BinWriterFactory {
     private final GlobTypeFieldWritersManager globTypeFieldWritersManager;
 
-    private BinWriterFactory(GlobTypeFieldWritersManager globTypeFieldWritersManager1) {
-        this.globTypeFieldWritersManager = globTypeFieldWritersManager1;
+    private BinWriterFactory(GlobTypeFieldWritersManager globTypeFieldWritersManager) {
+        this.globTypeFieldWritersManager = globTypeFieldWritersManager;
     }
 
     public static BinWriterFactory create() {
-        final ConcurrentHashMap<GlobType, GlobTypeFieldWriters> containers = new ConcurrentHashMap<>();
-        return new BinWriterFactory(new DefaultGlobTypeFieldWritersManager(containers,
-                new DefaultGlobTypeFieldWritersFactory(containers)));
+        return new BinWriterFactory(new DefaultGlobTypeFieldWritersManager(Map.of(),
+                new DefaultGlobTypeFieldWritersFactory(new HashMap<>())));
     }
 
     public static BinWriterFactory create(GlobTypeFieldWritersManager globTypeFieldWritersManager) {

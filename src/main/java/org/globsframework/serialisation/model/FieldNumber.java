@@ -9,6 +9,7 @@ import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.Key;
 import org.globsframework.core.model.KeyBuilder;
+import org.globsframework.core.model.MutableGlob;
 
 public class FieldNumber {
     public static final GlobType TYPE;
@@ -20,17 +21,10 @@ public class FieldNumber {
 
     static {
         GlobTypeBuilder typeBuilder = new DefaultGlobTypeBuilder("FieldNumber");
-        TYPE = typeBuilder.unCompleteType();
         fieldNumber = typeBuilder.declareIntegerField("fieldNumber");
-        typeBuilder.complete();
+        typeBuilder.register(GlobCreateFromAnnotation.class, annotation -> create(((FieldNumber_) annotation).value()));
+        TYPE = typeBuilder.build();
         KEY = KeyBuilder.newEmptyKey(TYPE);
-        typeBuilder.register(GlobCreateFromAnnotation.class, annotation -> TYPE.instantiate()
-                .set(fieldNumber, ((FieldNumber_) annotation).value()));
-
-//        GlobTypeLoaderFactory.create(FieldNumber.class, "FieldNumber")
-//                .register(GlobCreateFromAnnotation.class, annotation -> TYPE.instantiate()
-//                        .set(fieldNumber, ((FieldNumber_) annotation).value()))
-//                .load();
     }
 
     public static Glob create(int index) {

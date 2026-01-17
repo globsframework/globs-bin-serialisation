@@ -11,6 +11,7 @@ import org.globsframework.core.metamodel.fields.StringField;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.Key;
 import org.globsframework.core.model.KeyBuilder;
+import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.utils.exceptions.InvalidParameter;
 
 import java.lang.reflect.Field;
@@ -25,19 +26,26 @@ public class UnionType {
 
     static {
         final GlobTypeBuilder globTypeBuilder = GlobTypeBuilderFactory.create("Union");
-        TYPE = globTypeBuilder.unCompleteType();
-        mapping = globTypeBuilder.declareGlobArrayField("mapping", ChoiceType.TYPE);
-        globTypeBuilder.complete();
+        mapping = globTypeBuilder.declareGlobArrayField("mapping", () -> ChoiceType.TYPE);
+        globTypeBuilder.register(GlobCreateFromAnnotation.class, annotation -> createAnnotation((UnionType_) annotation));
+        TYPE = globTypeBuilder.build();
         UNIQUE_KEY = KeyBuilder.newEmptyKey(TYPE);
-        globTypeBuilder.register(GlobCreateFromAnnotation.class, annotation -> {
-            final UnionType_.ChoiceType_[] value = ((UnionType_) annotation).value();
-            Glob[] choices = new Glob[value.length];
-            for (int i = 0; i < choices.length; i++) {
-                choices[i] = readChoice(value[i]);
-            }
-            return TYPE.instantiate()
-                    .set(mapping, choices);
-        });
+    }
+
+
+    static public Glob create(Glob... choices) {
+        return TYPE.instantiate()
+                .set(mapping, choices);
+    }
+
+    private static MutableGlob createAnnotation(UnionType_ annotation) {
+        final UnionType_.ChoiceType_[] value = annotation.value();
+        Glob[] choices = new Glob[value.length];
+        for (int i = 0; i < choices.length; i++) {
+            choices[i] = readChoice(value[i]);
+        }
+        return TYPE.instantiate()
+                .set(mapping, choices);
     }
 
     public static Glob readChoice(UnionType_.ChoiceType_ choiceType){
@@ -66,12 +74,17 @@ public class UnionType {
 
         public static final StringField typeName;
 
+        public static Glob create(String typeName, int index) {
+            return TYPE.instantiate()
+                    .set(ChoiceType.index, index)
+                    .set(ChoiceType.typeName, typeName);
+        }
+
         static {
             final GlobTypeBuilder globTypeBuilder = GlobTypeBuilderFactory.create("Choice");
-            TYPE = globTypeBuilder.unCompleteType();
             index = globTypeBuilder.declareIntegerField("index");
             typeName = globTypeBuilder.declareStringField("type");
-            globTypeBuilder.complete();
+            TYPE = globTypeBuilder.build();
         }
     }
 }

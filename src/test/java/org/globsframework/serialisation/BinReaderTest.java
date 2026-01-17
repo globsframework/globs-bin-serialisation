@@ -2,8 +2,8 @@ package org.globsframework.serialisation;
 
 import junit.framework.TestCase;
 import org.globsframework.core.metamodel.GlobType;
+import org.globsframework.core.metamodel.GlobTypeBuilder;
 import org.globsframework.core.metamodel.GlobTypeBuilderFactory;
-import org.globsframework.core.metamodel.GlobTypeLoaderFactory;
 import org.globsframework.core.metamodel.annotations.Target;
 import org.globsframework.core.metamodel.annotations.Targets;
 import org.globsframework.core.metamodel.fields.*;
@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class BinReaderTest extends TestCase {
 
@@ -213,7 +214,7 @@ public class BinReaderTest extends TestCase {
     }
 
     private static GlobType createEmptyProto1Type() {
-        return GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).get();
+        return GlobTypeBuilderFactory.create(Proto1.TYPE.getName()).build();
     }
 
     private static GlobType createPartialProto1Type() {
@@ -226,8 +227,8 @@ public class BinReaderTest extends TestCase {
                                                         .set(UnionType.ChoiceType.index, 2)
                                                         .set(UnionType.ChoiceType.index, 2)
                                                         .set(UnionType.ChoiceType.typeName, Proto2.TYPE.getName())
-                                        })), List.of(Proto2.TYPE))
-                .get();
+                                        })), new Supplier[]{() -> Proto2.TYPE})
+                .build();
     }
 
     public void testBytes() throws IOException {
@@ -423,7 +424,8 @@ public class BinReaderTest extends TestCase {
     }
 
     public static class Proto1 {
-        public static GlobType TYPE;
+        public static final GlobType TYPE;
+        public static final String NAME = "Proto1";
 
         @FieldNumber_(1)
         public static BooleanField booleanField;
@@ -479,18 +481,43 @@ public class BinReaderTest extends TestCase {
         public static GlobArrayUnionField globArrayUnionField;
 
         static {
-            GlobTypeLoaderFactory.create(Proto1.class).load();
+            GlobTypeBuilder typeBuilder = GlobTypeBuilderFactory.create(NAME);
+            booleanField = typeBuilder.declareBooleanField("booleanField", FieldNumber.create(1));
+            booleanArrayField = typeBuilder.declareBooleanArrayField("booleanArrayField", FieldNumber.create(2));
+            intField = typeBuilder.declareIntegerField("intField", FieldNumber.create(3));
+            intArrayField = typeBuilder.declareIntegerArrayField("intArrayField", FieldNumber.create(4));
+            longField = typeBuilder.declareLongField("longField", FieldNumber.create(5));
+            longArrayField = typeBuilder.declareLongArrayField("longArrayField", FieldNumber.create(6));
+            doubleField = typeBuilder.declareDoubleField("doubleField", FieldNumber.create(7));
+            doubleArrayField = typeBuilder.declareDoubleArrayField("doubleArrayField", FieldNumber.create(8));
+            bigDecimalField = typeBuilder.declareBigDecimalField("bigDecimalField", FieldNumber.create(9));
+            bigDecimalArrayField = typeBuilder.declareBigDecimalArrayField("bigDecimalArrayField", FieldNumber.create(10));
+            strField = typeBuilder.declareStringField("strField", FieldNumber.create(11));
+            strArrayField = typeBuilder.declareStringArrayField("strArrayField", FieldNumber.create(12));
+            dateField = typeBuilder.declareDateField("dateField", FieldNumber.create(13));
+            dateTimeField = typeBuilder.declareDateTimeField("dateTimeField", FieldNumber.create(14));
+            BytesField = typeBuilder.declareBytesField("BytesField", FieldNumber.create(15));
+            globField = typeBuilder.declareGlobField("globField", () -> Proto1.TYPE, FieldNumber.create(16));
+            globArrayField = typeBuilder.declareGlobArrayField("globArrayField", () -> Proto1.TYPE, FieldNumber.create(17));
+            globUnionField = typeBuilder.declareGlobUnionField("globUnionField", new Supplier[]{() -> Proto1.TYPE, () -> Proto2.TYPE}, FieldNumber.create(18),
+                    UnionType.create(UnionType.ChoiceType.create(NAME, 1), UnionType.ChoiceType.create(Proto2.NAME, 2)));
+            globArrayUnionField = typeBuilder.declareGlobUnionArrayField("globArrayUnionField", new Supplier[]{() -> Proto1.TYPE, () -> Proto2.TYPE}, FieldNumber.create(19),
+                    UnionType.create(UnionType.ChoiceType.create(NAME, 1), UnionType.ChoiceType.create(Proto2.NAME, 2)));
+            TYPE = typeBuilder.build();
         }
     }
 
     public static class Proto2 {
-        public static GlobType TYPE;
+        public static final GlobType TYPE;
+        public static final String NAME = "Proto2";
 
         @FieldNumber_(1)
         public static BooleanField booleanField;
 
         static {
-            GlobTypeLoaderFactory.create(Proto2.class).load();
+            GlobTypeBuilder globTypeBuilder =  GlobTypeBuilderFactory.create(NAME);
+            booleanField = globTypeBuilder.declareBooleanField("booleanField", FieldNumber.create(1));
+            TYPE = globTypeBuilder.build();
         }
     }
 }
