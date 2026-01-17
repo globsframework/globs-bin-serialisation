@@ -17,7 +17,6 @@ import java.util.Map;
 import static org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldWritersFactory.getGreatestID;
 
 public class DefaultGlobTypeFieldReadersFactory implements GlobTypeFieldReadersFactory {
-    private static final Logger log = LoggerFactory.getLogger(DefaultGlobTypeFieldReadersFactory.class);
     private final Map<GlobType, GlobTypeFieldReaders> containers;
 
     public DefaultGlobTypeFieldReadersFactory(Map<GlobType, GlobTypeFieldReaders> containers) {
@@ -29,7 +28,6 @@ public class DefaultGlobTypeFieldReadersFactory implements GlobTypeFieldReadersF
         if (globTypeFieldReaders != null) {
             return globTypeFieldReaders;
         }
-        log.info("Creating readers for {}", globType.getName());
 
         Field[] fields = globType.getFields();
         final int maxLen = getGreatestID(fields);
