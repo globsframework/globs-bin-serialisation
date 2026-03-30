@@ -48,7 +48,7 @@ public class UnionType {
                 .set(mapping, choices);
     }
 
-    public static Glob readChoice(UnionType_.ChoiceType_ choiceType){
+    public static Glob readChoice(UnionType_.ChoiceType_ choiceType) {
         final Class<?> aClass = choiceType.value();
         final Field type;
         GlobType globType;

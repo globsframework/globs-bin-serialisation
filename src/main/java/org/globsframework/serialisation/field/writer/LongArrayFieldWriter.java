@@ -6,7 +6,7 @@ import org.globsframework.core.model.globaccessor.get.GlobGetLongArrayAccessor;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public class LongArrayFieldWriter implements FieldWriter {
+public final class LongArrayFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetLongArrayAccessor getAccessor;
 

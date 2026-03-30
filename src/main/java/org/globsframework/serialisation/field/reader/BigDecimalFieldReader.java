@@ -7,7 +7,7 @@ import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public class BigDecimalFieldReader implements FieldReader {
+public final class BigDecimalFieldReader implements FieldReader {
     private final int fieldNumber;
     private final BigDecimalField field;
     private final GlobSetBigDecimalAccessor setAccessor;

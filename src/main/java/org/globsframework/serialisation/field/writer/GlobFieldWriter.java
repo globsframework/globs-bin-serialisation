@@ -8,7 +8,7 @@ import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldWritersFactory;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public class GlobFieldWriter implements FieldWriter {
+public final class GlobFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetGlobAccessor getAccessor;
     private final GlobTypeFieldWriters globTypeFieldWriters;

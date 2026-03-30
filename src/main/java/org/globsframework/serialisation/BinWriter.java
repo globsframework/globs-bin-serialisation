@@ -15,7 +15,8 @@ public interface BinWriter {
     GlobWriter getWriter(GlobType type);
 
     interface GlobWriter {
-        void write(@Nullable  Glob glob);
+        void write(@Nullable Glob glob);
+
         void write(@Nullable Collection<@Nullable Glob> globs);
     }
 }

@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
-public class CodedOutputStream {
+public final class CodedOutputStream {
     private SerializedOutput serializedOutput;
 
     public CodedOutputStream(SerializedOutput serializedOutput) {

@@ -8,7 +8,7 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 
 import java.math.BigDecimal;
 
-public class BigDecimalFieldWriter implements FieldWriter {
+public final class BigDecimalFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetBigDecimalAccessor getAccessor;
 

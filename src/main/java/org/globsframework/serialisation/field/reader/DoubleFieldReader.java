@@ -7,7 +7,7 @@ import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public class DoubleFieldReader implements FieldReader {
+public final class DoubleFieldReader implements FieldReader {
     private final int fieldNumber;
     private final DoubleField field;
     private final GlobSetDoubleAccessor setAccessor;

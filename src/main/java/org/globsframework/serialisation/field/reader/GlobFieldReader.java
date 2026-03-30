@@ -12,7 +12,7 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GlobFieldReader implements FieldReader {
+public final class GlobFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobFieldReader.class);
     private final Integer fieldNumber;
     private final GlobField field;

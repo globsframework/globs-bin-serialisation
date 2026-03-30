@@ -13,6 +13,7 @@ public interface BinReader {
 
     interface GlobReader {
         @Nullable Glob read();
+
         @Nullable Glob[] readArray();
     }
 }

@@ -5,7 +5,6 @@ import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldWritersFactory;
 import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldWritersFactory;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 

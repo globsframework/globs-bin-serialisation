@@ -4,7 +4,7 @@ import org.globsframework.core.model.Glob;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public class GlobTypeFieldWriters {
+public final class GlobTypeFieldWriters {
     private final FieldWriter[] fieldWriters;
 
     public GlobTypeFieldWriters(FieldWriter[] fieldWriters) {

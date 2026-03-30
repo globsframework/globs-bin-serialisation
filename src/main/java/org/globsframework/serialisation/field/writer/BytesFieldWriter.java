@@ -6,7 +6,7 @@ import org.globsframework.core.model.globaccessor.get.GlobGetBytesAccessor;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public class BytesFieldWriter implements FieldWriter {
+public final class BytesFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetBytesAccessor getAccessor;
 

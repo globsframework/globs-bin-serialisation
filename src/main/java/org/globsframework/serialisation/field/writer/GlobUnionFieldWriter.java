@@ -13,7 +13,7 @@ import java.util.Map;
 
 import static org.globsframework.serialisation.field.writer.GlobArrayUnionFieldWriter.initTypesByIndex;
 
-public class GlobUnionFieldWriter implements FieldWriter {
+public final class GlobUnionFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobUnionField field;
     private final Map<GlobType, IndiceWithWriter> types;

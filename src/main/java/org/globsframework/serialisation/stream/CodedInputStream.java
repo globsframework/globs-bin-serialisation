@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 
 import static org.globsframework.serialisation.WireConstants.Type.END_GLOB;
 
-public class CodedInputStream {
+public final class CodedInputStream {
     private final GlobInstantiator globInstantiator;
     private final GlobTypeFieldReadersManager globTypeFieldReadersManager;
     private final SerializedInput serializedInput;

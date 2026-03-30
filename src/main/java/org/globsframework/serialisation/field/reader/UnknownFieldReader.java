@@ -4,7 +4,7 @@ import org.globsframework.core.model.MutableGlob;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public class UnknownFieldReader implements FieldReader {
+public final class UnknownFieldReader implements FieldReader {
     public static final UnknownFieldReader INSTANCE = new UnknownFieldReader();
 
     private UnknownFieldReader() {

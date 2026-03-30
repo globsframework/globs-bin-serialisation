@@ -2,20 +2,19 @@ package org.globsframework.serialisation.field.reader;
 
 import org.globsframework.core.metamodel.fields.BigDecimalArrayField;
 import org.globsframework.core.model.MutableGlob;
-import org.globsframework.core.model.globaccessor.set.GlobSetAccessor;
 import org.globsframework.core.model.globaccessor.set.GlobSetBigDecimalArrayAccessor;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public class BigDecimalArrayFieldReader implements FieldReader {
+public final class BigDecimalArrayFieldReader implements FieldReader {
     private final int fieldNumber;
     private final BigDecimalArrayField field;
     private final GlobSetBigDecimalArrayAccessor setAccessor;
 
     public BigDecimalArrayFieldReader(int fieldNumber, BigDecimalArrayField field) {
         this.fieldNumber = fieldNumber;
-               this.field = field;
+        this.field = field;
         setAccessor = field.getGlobType().getSetAccessor(field);
     }
 

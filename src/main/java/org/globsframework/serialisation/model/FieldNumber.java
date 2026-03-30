@@ -9,7 +9,6 @@ import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.Key;
 import org.globsframework.core.model.KeyBuilder;
-import org.globsframework.core.model.MutableGlob;
 
 public class FieldNumber {
     public static final GlobType TYPE;

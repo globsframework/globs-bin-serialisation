@@ -12,7 +12,7 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GlobUnionFieldReader implements FieldReader {
+public final class GlobUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobUnionFieldReader.class);
     private final Integer fieldNumber;
     private final GlobUnionField field;
@@ -26,7 +26,8 @@ public class GlobUnionFieldReader implements FieldReader {
         types = GlobArrayUnionFieldReader.initTypesByIndex(field, field.getTargetTypes(), globTypeFieldReadersFactory);
     }
 
-    public record TypeWithReader(GlobType type, GlobTypeFieldReaders readers) {}
+    public record TypeWithReader(GlobType type, GlobTypeFieldReaders readers) {
+    }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
         switch (tagWireType) {

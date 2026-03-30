@@ -6,7 +6,7 @@ import org.globsframework.core.model.globaccessor.get.GlobGetDoubleArrayAccessor
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public class DoubleArrayFieldWriter implements FieldWriter {
+public final class DoubleArrayFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetDoubleArrayAccessor getAccessor;
 

@@ -8,7 +8,7 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 
 import java.time.LocalDate;
 
-public class DateFieldWriter implements FieldWriter {
+public final class DateFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobGetDateAccessor getAccessor;
 

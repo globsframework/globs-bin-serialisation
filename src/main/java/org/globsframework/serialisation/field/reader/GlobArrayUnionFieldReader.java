@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.security.InvalidParameterException;
 import java.util.Collection;
 
-public class GlobArrayUnionFieldReader implements FieldReader {
+public final class GlobArrayUnionFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayUnionFieldReader.class);
     private final Integer fieldNumber;
     private final GlobArrayUnionField field;

@@ -7,7 +7,7 @@ import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public class DateTimeFieldReader implements FieldReader {
+public final class DateTimeFieldReader implements FieldReader {
     private final int fieldNumber;
     private final DateTimeField field;
     private final GlobSetDateTimeAccessor setAccessor;

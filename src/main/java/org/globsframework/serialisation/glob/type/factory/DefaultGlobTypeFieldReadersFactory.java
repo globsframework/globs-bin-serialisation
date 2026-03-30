@@ -7,14 +7,9 @@ import org.globsframework.serialisation.field.reader.FieldReaderVisitorCreator;
 import org.globsframework.serialisation.field.reader.UnknownFieldReader;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.model.FieldNumber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
-
-import static org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldWritersFactory.getGreatestID;
 
 public class DefaultGlobTypeFieldReadersFactory implements GlobTypeFieldReadersFactory {
     private final Map<GlobType, GlobTypeFieldReaders> containers;
@@ -48,6 +43,16 @@ public class DefaultGlobTypeFieldReadersFactory implements GlobTypeFieldReadersF
             }
         }
         return v;
+    }
+
+    private static int getGreatestID(Field[] fields) {
+        int maxLen = 0;
+        for (Field field : fields) {
+            maxLen = Math.max(maxLen, field.findOptAnnotation(FieldNumber.KEY)
+                    .map(FieldNumber.fieldNumber)
+                    .orElse(-1));
+        }
+        return maxLen;
     }
 
 }

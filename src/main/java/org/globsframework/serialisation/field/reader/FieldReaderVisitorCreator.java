@@ -4,7 +4,7 @@ import org.globsframework.core.metamodel.fields.*;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldReadersFactory;
 
-public class FieldReaderVisitorCreator extends FieldVisitorWithContext.AbstractFieldVisitor<Integer> {
+public final class FieldReaderVisitorCreator extends FieldVisitorWithContext.AbstractFieldVisitor<Integer> {
     private final FieldReader[] fieldReaders;
     private final GlobTypeFieldReadersFactory globTypeFieldReadersFactory;
 

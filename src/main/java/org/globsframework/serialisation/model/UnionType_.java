@@ -17,6 +17,7 @@ public @interface UnionType_ {
 
     @interface ChoiceType_ {
         Class<?> value();
+
         int index();
     }
 }

@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GlobArrayUnionFieldWriter implements FieldWriter {
+public final class GlobArrayUnionFieldWriter implements FieldWriter {
     private final int fieldNumber;
     private final GlobArrayUnionField field;
     private final Map<GlobType, GlobUnionFieldWriter.IndiceWithWriter> types;

@@ -7,10 +7,9 @@ import org.globsframework.serialisation.field.writer.FieldWriterVisitorCreator;
 import org.globsframework.serialisation.field.writer.NullFieldWriter;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.model.FieldNumber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
 
 public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersFactory {
     private final Map<GlobType, GlobTypeFieldWriters> containers;
@@ -25,8 +24,7 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
         }
 
         Field[] fields = type.getFields();
-        final int maxLen = getGreatestID(fields);
-        FieldWriter[] realFieldWriters = new FieldWriter[maxLen + 1];
+        FieldWriter[] realFieldWriters = new FieldWriter[fields.length];
 
         final GlobTypeFieldWriters fieldWriters = new GlobTypeFieldWriters(realFieldWriters);
         containers.put(type, fieldWriters);
@@ -45,16 +43,6 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
         }
 
         return fieldWriters;
-    }
-
-    public static int getGreatestID(Field[] fields) {
-        int maxLen = 0;
-        for (Field field : fields) {
-            maxLen = Math.max(maxLen, field.findOptAnnotation(FieldNumber.KEY)
-                    .map(FieldNumber.fieldNumber)
-                    .orElse(-1));
-        }
-        return maxLen;
     }
 
 }
