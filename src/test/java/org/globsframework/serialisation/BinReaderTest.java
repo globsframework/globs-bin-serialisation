@@ -225,7 +225,6 @@ public class BinReaderTest extends TestCase {
                                         .set(UnionType.mapping, new Glob[]{
                                                 UnionType.ChoiceType.TYPE.instantiate()
                                                         .set(UnionType.ChoiceType.index, 2)
-                                                        .set(UnionType.ChoiceType.index, 2)
                                                         .set(UnionType.ChoiceType.typeName, Proto2.TYPE.getName())
                                         })), new Supplier[]{() -> Proto2.TYPE})
                 .build();

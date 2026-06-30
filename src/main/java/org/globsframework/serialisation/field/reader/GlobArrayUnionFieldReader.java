@@ -74,8 +74,10 @@ public final class GlobArrayUnionFieldReader implements FieldReader {
                 for (int index = 0; index < size; index++) {
                     int typeIndex = inputStream.readInt();
                     if (typeIndex != -1) {
-                        final Glob glob = inputStream.readGlob(typeIndex >= types.length ? null : types[typeIndex].type(), types[typeIndex].readers());
-                        globs[index] = glob;
+                        GlobUnionFieldReader.TypeWithReader typeWithReader = typeIndex < types.length ? types[typeIndex] : null;
+                        globs[index] = inputStream.readGlob(
+                                typeWithReader != null ? typeWithReader.type() : null,
+                                typeWithReader != null ? typeWithReader.readers() : null);
                     }
                 }
                 setAccessor.set(data, globs);

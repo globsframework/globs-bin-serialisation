@@ -36,7 +36,10 @@ public final class GlobUnionFieldReader implements FieldReader {
                 break;
             case WireConstants.Type.GLOB_UNION:
                 int typeIndex = inputStream.readInt();
-                setAccessor.set(data, inputStream.readGlob(typeIndex >= types.length ? null : types[typeIndex].type, types[typeIndex].readers));
+                TypeWithReader typeWithReader = typeIndex < types.length ? types[typeIndex] : null;
+                setAccessor.set(data, inputStream.readGlob(
+                        typeWithReader != null ? typeWithReader.type() : null,
+                        typeWithReader != null ? typeWithReader.readers() : null));
                 break;
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;

@@ -86,7 +86,7 @@ public final class CodedOutputStream {
 
     public void writeBigDecimal(int fieldNumber, BigDecimal value) {
         serializedOutput.write(WireConstants.makeTag(fieldNumber, WireConstants.Type.BIG_DECIMAL));
-        serializedOutput.write(new BigDecimal[]{value});
+        serializedOutput.write(value);
     }
 
     public void writeBigDecimalArray(int fieldNumber, BigDecimal[] value) {

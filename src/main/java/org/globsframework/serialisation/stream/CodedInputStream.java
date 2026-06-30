@@ -178,13 +178,7 @@ public final class CodedInputStream {
     }
 
     public BigDecimal readBigDecimal() {
-        BigDecimal[] bigDecimals = readBigDecimalArray();
-
-        if (bigDecimals == null || bigDecimals.length == 0) {
-            throw new RuntimeException("cannot read BigDecimal");
-        }
-
-        return bigDecimals[0];
+        return serializedInput.readBigDecimal();
     }
 
     public BigDecimal[] readBigDecimalArray() {
