@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory;
 public final class GlobFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobFieldReader.class);
     private final Integer fieldNumber;
-    private final GlobField field;
+    private final GlobField<?> field;
     private final GlobType targetType;
     private final GlobSetGlobAccessor setAccessor;
     private final GlobTypeFieldReaders globTypeFieldReaders;
 
-    public GlobFieldReader(Integer fieldNumber, GlobField field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
+    public GlobFieldReader(Integer fieldNumber, GlobField<?> field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
         this.fieldNumber = fieldNumber;
         this.field = field;
         setAccessor = field.getGlobType().getSetAccessor(field);

@@ -459,11 +459,11 @@ public class BinReaderTest extends TestCase {
 
         @Target(Proto1.class)
         @FieldNumber_(16)
-        public static GlobField globField;
+        public static GlobField<Proto1> globField;
 
         @Target(Proto1.class)
         @FieldNumber_(17)
-        public static GlobArrayField globArrayField;
+        public static GlobArrayField<Proto1> globArrayField;
 
         @Targets({Proto1.class, Proto2.class})
         @FieldNumber_(18)

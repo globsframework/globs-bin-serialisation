@@ -74,11 +74,11 @@ public final class FieldWriterVisitorCreator extends FieldVisitorWithContext.Abs
         fieldWriters[field.getIndex()] = new BytesFieldWriter(fieldNumber, field);
     }
 
-    public void visitGlob(GlobField field, Integer fieldNumber) {
+    public void visitGlob(GlobField<?> field, Integer fieldNumber) {
         fieldWriters[field.getIndex()] = new GlobFieldWriter(fieldNumber, field, fieldWritersFactory);
     }
 
-    public void visitGlobArray(GlobArrayField field, Integer fieldNumber) {
+    public void visitGlobArray(GlobArrayField<?> field, Integer fieldNumber) {
         fieldWriters[field.getIndex()] = new GlobArrayFieldWriter(fieldNumber, field, fieldWritersFactory);
     }
 

@@ -73,11 +73,11 @@ public final class FieldReaderVisitorCreator extends FieldVisitorWithContext.Abs
         fieldReaders[fieldNumber] = new BytesFieldReader(fieldNumber, field);
     }
 
-    public void visitGlob(GlobField field, Integer fieldNumber) {
+    public void visitGlob(GlobField<?> field, Integer fieldNumber) {
         fieldReaders[fieldNumber] = new GlobFieldReader(fieldNumber, field, globTypeFieldReadersFactory);
     }
 
-    public void visitGlobArray(GlobArrayField field, Integer fieldNumber) {
+    public void visitGlobArray(GlobArrayField<?> field, Integer fieldNumber) {
         fieldReaders[fieldNumber] = new GlobArrayFieldReader(fieldNumber, field, globTypeFieldReadersFactory);
     }
 

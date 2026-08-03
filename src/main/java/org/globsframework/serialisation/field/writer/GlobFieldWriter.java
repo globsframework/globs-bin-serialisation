@@ -13,7 +13,7 @@ public final class GlobFieldWriter implements FieldWriter {
     private final GlobGetGlobAccessor getAccessor;
     private final GlobTypeFieldWriters globTypeFieldWriters;
 
-    public GlobFieldWriter(int fieldNumber, GlobField field, GlobTypeFieldWritersFactory fieldWritersFactory) {
+    public GlobFieldWriter(int fieldNumber, GlobField<?> field, GlobTypeFieldWritersFactory fieldWritersFactory) {
         this.fieldNumber = fieldNumber;
         getAccessor = field.getGlobType().getGetAccessor(field);
         globTypeFieldWriters = fieldWritersFactory.create(field.getTargetType());
