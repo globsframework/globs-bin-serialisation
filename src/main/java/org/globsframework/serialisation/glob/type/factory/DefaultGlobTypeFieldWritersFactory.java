@@ -42,6 +42,9 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
             }
         }
 
+        // only now : the caller captures the writers, and they are only all there at this point
+        fieldWriters.initCaller(type);
+
         return fieldWriters;
     }
 

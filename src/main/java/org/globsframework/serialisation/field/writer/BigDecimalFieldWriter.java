@@ -28,6 +28,17 @@ public final class BigDecimalFieldWriter implements FieldWriter {
         }
     }
 
+    /** The same thing driven by a GeneratedFunctionCaller : isSet / isNull / the value come from it. */
+    public void call(boolean isSet, boolean isNull, Object value, CodedOutputStream codedOutputStream, Void ignored) {
+        if (isNull) {
+            if (isSet) {
+                codedOutputStream.writeNull(fieldNumber);
+            }
+        } else {
+            codedOutputStream.writeBigDecimal(fieldNumber, (BigDecimal) value);
+        }
+    }
+
     public int getFieldNumber() {
         return fieldNumber;
     }

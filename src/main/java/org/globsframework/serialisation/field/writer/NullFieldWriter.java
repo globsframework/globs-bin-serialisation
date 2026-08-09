@@ -15,6 +15,10 @@ public final class NullFieldWriter implements FieldWriter {
         // do nothing
     }
 
+    public void call(boolean isSet, boolean isNull, Object value, CodedOutputStream codedOutputStream, Void ignored) {
+        // do nothing : a field with no field number is not written, whatever it holds
+    }
+
     public int getFieldNumber() {
         return 0;
     }

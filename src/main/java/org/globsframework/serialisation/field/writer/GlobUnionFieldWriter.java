@@ -36,14 +36,29 @@ public final class GlobUnionFieldWriter implements FieldWriter {
                 codedOutputStream.writeNull(fieldNumber);
             }
         } else {
-            final IndiceWithWriter index = types.get(glob.getType());
-            if (index == null) {
-                throw new RuntimeException("Unsupported glob type " + glob.getType() + " in " + field.getFullName());
-            }
-            codedOutputStream.writeGlobUnion(fieldNumber);
-            codedOutputStream.writeInt(index.indice);
-            index.fieldWriters.write(codedOutputStream, glob);
+            writeValue(codedOutputStream, glob);
         }
+    }
+
+    /** The same thing driven by a GeneratedFunctionCaller : isSet / isNull / the value come from it. */
+    public void call(boolean isSet, boolean isNull, Object value, CodedOutputStream codedOutputStream, Void ignored) {
+        if (isNull) {
+            if (isSet) {
+                codedOutputStream.writeNull(fieldNumber);
+            }
+        } else {
+            writeValue(codedOutputStream, (Glob) value);
+        }
+    }
+
+    private void writeValue(CodedOutputStream codedOutputStream, Glob glob) {
+        final IndiceWithWriter index = types.get(glob.getType());
+        if (index == null) {
+            throw new RuntimeException("Unsupported glob type " + glob.getType() + " in " + field.getFullName());
+        }
+        codedOutputStream.writeGlobUnion(fieldNumber);
+        codedOutputStream.writeInt(index.indice);
+        index.fieldWriters.write(codedOutputStream, glob);
     }
 
     public int getFieldNumber() {
