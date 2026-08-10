@@ -16,12 +16,12 @@ import org.slf4j.LoggerFactory;
 public final class GlobArrayFieldReader implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayFieldReader.class);
     private final Integer fieldNumber;
-    private final GlobArrayField field;
+    private final GlobArrayField<?> field;
     private final GlobType targetType;
     private final GlobSetGlobArrayAccessor setAccessor;
     private final GlobTypeFieldReaders globTypeFieldReaders;
 
-    public GlobArrayFieldReader(Integer fieldNumber, GlobArrayField field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
+    public GlobArrayFieldReader(Integer fieldNumber, GlobArrayField<?> field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
         this.fieldNumber = fieldNumber;
         this.field = field;
         setAccessor = field.getGlobType().getSetAccessor(field);
@@ -44,7 +44,7 @@ public final class GlobArrayFieldReader implements FieldReader {
             default -> {
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;
                 LOGGER.error(message);
-                inputStream.skipField(tag);
+                inputStream.skipFieldFromWireType(tagWireType);
             }
         }
     }

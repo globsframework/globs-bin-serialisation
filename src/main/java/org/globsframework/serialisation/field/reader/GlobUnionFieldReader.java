@@ -44,7 +44,7 @@ public final class GlobUnionFieldReader implements FieldReader {
             default:
                 String message = "For " + field.getName() + " unexpected type " + tagWireType;
                 LOGGER.error(message);
-                inputStream.skipField(tag);
+                inputStream.skipFieldFromWireType(tagWireType);
         }
     }
 

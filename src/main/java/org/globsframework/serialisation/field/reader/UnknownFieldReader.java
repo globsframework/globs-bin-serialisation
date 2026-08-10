@@ -1,6 +1,7 @@
 package org.globsframework.serialisation.field.reader;
 
 import org.globsframework.core.model.MutableGlob;
+import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
@@ -12,7 +13,7 @@ public final class UnknownFieldReader implements FieldReader {
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
-        inputStream.skipField(tag);
+        inputStream.skipFieldFromWireType(tagWireType);
     }
 
     public int getFieldNumber() {

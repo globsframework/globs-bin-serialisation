@@ -50,8 +50,7 @@ public final class CodedInputStream {
         return readInt();
     }
 
-    public void skipField(int tag) {
-        int type = WireConstants.getTagWireType(tag);
+    public void skipFieldFromWireType(int type) {
         switch (type) {
             case WireConstants.Type.NULL:
                 break;
@@ -134,10 +133,11 @@ public final class CodedInputStream {
     private void skipGlobField() {
         while (true) {
             int subTag = readTag();
-            if (WireConstants.getTagWireType(subTag) == WireConstants.Type.END_GLOB) {
+            int type = WireConstants.getTagWireType(subTag);
+            if (type == WireConstants.Type.END_GLOB) {
                 break;
             }
-            skipField(subTag);
+            skipFieldFromWireType(type);
         }
     }
 
@@ -240,7 +240,7 @@ public final class CodedInputStream {
                 if (tagWireType == END_GLOB) {
                     return null;
                 }
-                skipField(fieldTag);
+                skipFieldFromWireType(tagWireType);
             }
         }
     }

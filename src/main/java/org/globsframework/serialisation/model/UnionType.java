@@ -22,7 +22,7 @@ public class UnionType {
     public static final Key UNIQUE_KEY;
 
     @Target(ChoiceType.class)
-    public static GlobArrayField mapping;
+    public static GlobArrayField<ChoiceType> mapping;
 
     static {
         final GlobTypeBuilder globTypeBuilder = GlobTypeBuilderFactory.create("Union");
