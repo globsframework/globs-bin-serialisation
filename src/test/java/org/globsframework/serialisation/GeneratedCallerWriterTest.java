@@ -10,6 +10,8 @@ import org.globsframework.core.model.GlobFactory;
 import org.globsframework.core.model.GlobFactoryService;
 import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.model.generate.DefaultFunctionCaller;
+import org.globsframework.core.model.generate.GenerateCaller;
+import org.globsframework.core.model.generate.GenerateCallerService;
 import org.globsframework.core.model.generate.GeneratedFunctionCaller;
 import org.globsframework.core.model.generate.GlobGenerateFactory;
 import org.globsframework.core.model.globaccessor.get.GlobGetAccessor;
@@ -45,6 +47,8 @@ public class GeneratedCallerWriterTest {
     public void tearDown() {
         System.clearProperty("globs.builder");
         GlobFactoryService.Builder.reset();
+        System.clearProperty("globs.caller");
+        GenerateCallerService.Builder.reset();
     }
 
     @Test
@@ -58,6 +62,33 @@ public class GeneratedCallerWriterTest {
                 called.proto().getGlobFactory() instanceof GlobGenerateFactory);
 
         Assert.assertArrayEquals(write(looped), write(called));
+    }
+
+    /**
+     * The other way a caller can arrive : not from the type's factory but from the GenerateCallerService of
+     * {@code -Dglobs.caller}, which is how globs-generate offers one over a Glob it did not build. Nothing in
+     * this module knows about it — going through GenerateCaller rather than testing GlobGenerateFactory by
+     * hand is the whole reason it works.
+     * <p>
+     * The stand-in service counts and delegates, so the assertion is that the writers asked at all; what it
+     * hands back is deliberately the looped caller, since this module is not the place to test ASM.
+     */
+    @Test
+    public void theCallerServiceReachesTheWritersAndDoesNotChangeTheBytes() {
+        Types types = buildTypes("Service", null);
+        byte[] expected = write(types);
+
+        System.setProperty("globs.caller", CountingCallerService.class.getName());
+        GenerateCallerService.Builder.reset();
+        CountingCallerService.CALLS.set(0);
+        try {
+            byte[] actual = write(types);
+            Assert.assertTrue("the writers never asked the service", CountingCallerService.CALLS.get() > 0);
+            Assert.assertArrayEquals(expected, actual);
+        } finally {
+            System.clearProperty("globs.caller");
+            GenerateCallerService.Builder.reset();
+        }
     }
 
     /** ... and what comes back is what went in, so the caller path is not just self-consistent. */
@@ -190,6 +221,23 @@ public class GeneratedCallerWriterTest {
         System.clearProperty("globs.builder");
         GlobFactoryService.Builder.reset();
         return new Types(holder[0], other);
+    }
+
+    /** Counts what the writers asked it for, and hands back the looped caller. */
+    public static class CountingCallerService implements GenerateCallerService {
+        static final java.util.concurrent.atomic.AtomicInteger CALLS = new java.util.concurrent.atomic.AtomicInteger();
+
+        public GenerateCaller getGenerateCaller(GlobType type) {
+            return new GenerateCaller() {
+                public <D, E> GeneratedFunctionCaller<D, E> create(GetFieldValueFunction<D, E> functions) {
+                    GeneratedFunctionCaller<D, E> delegate = new DefaultFunctionCaller<>(type, functions);
+                    return (data, ctx1, ctx2) -> {
+                        CALLS.incrementAndGet();
+                        delegate.call(data, ctx1, ctx2);
+                    };
+                }
+            };
+        }
     }
 
     /**
