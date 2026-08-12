@@ -1,7 +1,7 @@
 package org.globsframework.serialisation.field;
 
 import org.globsframework.core.model.Glob;
-import org.globsframework.core.model.generate.FieldValueFunction;
+import org.globsframework.core.model.generate.read.FieldValueFunction;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
 /**

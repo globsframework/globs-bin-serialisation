@@ -3,9 +3,9 @@ package org.globsframework.serialisation.glob.type;
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.core.model.Glob;
-import org.globsframework.core.model.generate.FieldValueFunction;
-import org.globsframework.core.model.generate.GenerateCaller;
-import org.globsframework.core.model.generate.GeneratedFunctionCaller;
+import org.globsframework.core.model.generate.read.FieldValueFunction;
+import org.globsframework.core.model.generate.read.GenerateCaller;
+import org.globsframework.core.model.generate.read.GeneratedFunctionCaller;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
