@@ -29,7 +29,13 @@ and a nested Glob array of its own type, under core's `DefaultGlob` and both ASM
 ```bash
 mvn -o test-compile dependency:build-classpath -Dmdep.outputFile=/tmp/cp.txt
 java -cp target/classes:target/test-classes:$(cat /tmp/cp.txt) org.openjdk.jmh.Main GeneratedGlobPerfTest -p flavour=OBJECT
+# the read arms take the generated caller only with the property, which JMH must pass to its forks :
+#   -jvmArgsAppend "-Dglobs.callerWrite=org.globsframework.model.generator.AsmCallerWriteGeneratorService"
 ```
+
+The suite is worth running **both ways** — `mvn -o test` exercises the array path, and the same command with
+`-Dglobs.callerWrite=…` (surefire forwards it to its fork) exercises the generated switch. `BinReaderTest`
+round-trips every field kind, so it is what says the two paths read the same thing.
 
 Releases go through `maven-release-plugin` + the `release` profile (GPG signing, sources/javadoc, Sonatype Central). `pom.xml.releaseBackup` and `release.properties` in the working tree are leftovers of an interrupted/complete release run, not source files.
 
@@ -105,6 +111,48 @@ levels end up compiled *worse* than when each type's `call` was its own unit. Th
 an inlining barrier, and here that barrier is worth more than the dispatch it costs. Which also says the leaf
 gain (+6.7 %) and the nested gain are not the same trade at all: fold what is a leaf, keep a boundary where a
 whole sub-tree hangs. Do not "fix" this by moving `initCaller` into the constructor.
+
+### Reading through a generated caller
+
+The same trade on the other side, and it is the *write* half of core's SPI that serves it — a parser filling a
+`MutableGlob` is exactly what `model/generate/write` describes. `FieldReader` therefore **extends
+`MutableFunctionWrite<CodedInputStream, Void, Void>`**: on top of `read(data, tag, wireType, in)` every reader
+carries `call(data, in, null, null)`, the same read driven by a `GeneratedCallerWrite`.
+
+The pieces map one to one onto the read loop that was already there:
+
+| the SPI wants | here |
+| --- | --- |
+| `CallAtWrite.getNextToCall()` | `CodedInputStream` itself: reads the tag, keeps it in `lastTag`, answers the field number — or `END_OF_GLOB` (-1, and a field number is never negative) when the wire type is `END_GLOB` |
+| the key of each `MutableFunctionWrite` | the proto field number, i.e. the index of `GlobTypeFieldReaders`' array |
+| the fallback | `UnknownFieldReader.INSTANCE`, which skips — the same answer the array gives for a number it has no reader for |
+| `endLoop` | `END_OF_GLOB` |
+
+`GlobTypeFieldReaders.initCaller()` builds it, at the end of `DefaultGlobTypeFieldReadersFactory.create` and
+for the same reason as on the write side (the container is published before the fields are visited, so
+recursive types resolve). It asks `GeneratedFunctionCallerWrite.**getGenerated()**`, not `get()`: null means
+"nobody can generate this", and the array is a *better* answer than the looped `DefaultFunctionCallerWrite`,
+an index being cheaper than its binary search for the same megamorphic call at the end.
+
+Two things to keep in mind:
+
+- **the tag is read back from the stream, not passed.** `MutableFunctionWrite` takes objects, so an `int`
+  argument would be boxed; instead `getNextToCall` leaves the tag in `lastTag` and each `call` reads
+  `lastTag()` / `lastWireType()` before doing anything else. That "before anything else" is load-bearing for
+  nested Globs: descending into a sub-glob overwrites it.
+- **each reader writes its own one-line `call`**, delegating to its own `read`. A `default call` on the
+  interface would be a second *interface* dispatch on the path that exists to remove one — globs-grpc measured
+  that shape at 229k → 191k ops/s. On the exact final class the call is statically bound and free.
+
+Measured on `GeneratedGlobPerfTest`, OBJECT, five forks per arm, same build, caller off → on:
+**read 75.7k → 88.7k ops/s (+17 %)** and **readNested 500.7k → 583.6k (+17 %)**. The fallback path pays a
+little for the split — `read` is unchanged (75.6k → 75.7k in-window), `readNested` loses 2.6 %
+(514.2k → 500.7k), one `caller()` load and null test per glob, of which the nested shape does fifteen.
+
+Unlike the writers' caller, this one needs **`-Dglobs.callerWrite=org.globsframework.model.generator.AsmCallerWriteGeneratorService`**
+(and globs-generate on the classpath). It is independent of `globs.builder`: nothing in the emitted switch
+reads a Glob's layout, the readers write through `MutableGlob`, so there is no guard on the Glob's class here —
+where `GlobTypeFieldWriters` needs `glob.getClass() == generatedGlobClass`.
 
 ### Reading and writing
 

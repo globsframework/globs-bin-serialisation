@@ -7,6 +7,7 @@ import org.globsframework.core.metamodel.fields.*;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.utils.ReusableByteArrayOutputStream;
+import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
 import org.globsframework.serialisation.model.FieldNumber;
 import org.openjdk.jmh.annotations.*;
@@ -15,6 +16,7 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
 /**
@@ -59,6 +61,10 @@ public class GeneratedGlobPerfTest {
     private GlobType nestedType;
     private Glob nestedData;
 
+    private BinReaderFactory readerFactory;
+    private byte[][] encoded;
+    private byte[] encodedNested;
+
     @Setup
     public void setup() {
         GlobFlavour.valueOf(flavour).build(() -> {
@@ -81,6 +87,24 @@ public class GeneratedGlobPerfTest {
         builder.add(nestedType);
         writerFactory = BinWriterFactory.create(builder.build());
         output = new ReusableByteArrayOutputStream();
+
+        GlobTypeFieldReadersManager.Builder readers = GlobTypeFieldReadersManager.Builder.init();
+        for (GlobType type : types) {
+            readers.add(type);
+        }
+        readers.add(nestedType);
+        readerFactory = BinReaderFactory.create(readers.build());
+        encoded = new byte[data.length][];
+        for (int i = 0; i < data.length; i++) {
+            encoded[i] = encode(types[i], data[i]);
+        }
+        encodedNested = encode(nestedType, nestedData);
+    }
+
+    private byte[] encode(GlobType type, Glob glob) {
+        ReusableByteArrayOutputStream out = new ReusableByteArrayOutputStream();
+        writerFactory.createFromStream(out).getWriter(type).write(glob);
+        return Arrays.copyOf(out.getBuffer(), out.size());
     }
 
     /**
@@ -95,6 +119,22 @@ public class GeneratedGlobPerfTest {
         BinWriter binWriter = writerFactory.createFromStream(output);
         binWriter.getWriter(nestedType).write(nestedData);
         blackhole.consume(output.size());
+    }
+
+    /** one pass = the four shapes read back once each, nested Globs included */
+    @Benchmark
+    public void read(Blackhole blackhole) {
+        for (int i = 0; i < encoded.length; i++) {
+            BinReader binReader = readerFactory.createFromStream(new ByteArrayInputStream(encoded[i]));
+            blackhole.consume(binReader.getReader(types[i]).read());
+        }
+    }
+
+    /** the nested-heavy shape, read : 15 Globs, one dispatch per field number on the wire */
+    @Benchmark
+    public void readNested(Blackhole blackhole) {
+        BinReader binReader = readerFactory.createFromStream(new ByteArrayInputStream(encodedNested));
+        blackhole.consume(binReader.getReader(nestedType).read());
     }
 
     /** one pass = the four shapes written once each, nested Globs included */

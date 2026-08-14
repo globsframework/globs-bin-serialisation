@@ -42,6 +42,10 @@ public class DefaultGlobTypeFieldReadersFactory implements GlobTypeFieldReadersF
                 field.safeAccept(fieldReaderVisitorCreator, ind);
             }
         }
+
+        // only now : the caller captures the readers, and they are only all there at this point
+        v.initCaller();
+
         return v;
     }
 
