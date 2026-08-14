@@ -95,6 +95,19 @@ accessor** — `GlobType.getGetAccessor` is `<T extends GlobGetAccessor> T`, so 
 makes the convenience constructor applicable to its own delegation and javac reports a *recursive constructor
 invocation*. `NullFieldWriter` stays a plain class: a stateless singleton has nothing to fold.
 
+**The readers are records for the same reason**, and there the experiment comes with its own control: the
+generated caller holds each reader in a `static final`, but the array path reaches the very same objects
+through `fieldReaders[n]`, where the receiver is *not* a constant and nothing can fold. Measured with and
+without `-Dglobs.callerWrite`, five forks each — the caller arm gains **read 88.7k → 92.1k (+3.8 %)** and
+**readNested 583.6k → 655.4k (+12.3 %)**, while the array arm does not move (75.7k → 76.1k, 500.7k → 506.1k).
+That is the mechanism showing itself: no constant receiver, no folding, no gain.
+
+The nested shape gains three times what the flat one does because `GlobFieldReader` also holds its child's
+`targetType` and `GlobTypeFieldReaders`, so a folded reader turns the arguments of the nested `readGlob` into
+constants too. That is *not* the same thing as folding `GlobTypeFieldReaders.caller` itself, which is what the
+paragraph below found to be a loss: the child's caller stays behind a non-final field, so it remains the
+inlining boundary, and only the walk to it becomes free. `UnknownFieldReader` stays a plain class.
+
 **The nested case looks like the same opportunity and is not — it was tried and it loses.**
 `GlobFieldWriter` / `GlobArrayFieldWriter` / the two union writers hold a `GlobTypeFieldWriters` and delegate a
 whole sub-Glob to it, a *call* through a field, and `GlobTypeFieldWriters.caller` is **non-final** (it cannot

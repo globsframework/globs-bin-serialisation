@@ -12,20 +12,15 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class GlobFieldReader implements FieldReader {
+public record GlobFieldReader(Integer fieldNumber, GlobField<?> field, GlobType targetType, GlobSetGlobAccessor setAccessor, GlobTypeFieldReaders globTypeFieldReaders) implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobFieldReader.class);
-    private final Integer fieldNumber;
-    private final GlobField<?> field;
-    private final GlobType targetType;
-    private final GlobSetGlobAccessor setAccessor;
-    private final GlobTypeFieldReaders globTypeFieldReaders;
 
     public GlobFieldReader(Integer fieldNumber, GlobField<?> field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
-        this.fieldNumber = fieldNumber;
-        this.field = field;
-        setAccessor = field.getGlobType().getSetAccessor(field);
-        targetType = field.getTargetType();
-        globTypeFieldReaders = globTypeFieldReadersFactory.create(targetType);
+        this(fieldNumber,
+                field,
+                field.getTargetType(),
+                field.getGlobType().getSetAccessor(field),
+                globTypeFieldReadersFactory.create(field.getTargetType()));
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {

@@ -12,18 +12,14 @@ import org.globsframework.serialisation.stream.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class GlobUnionFieldReader implements FieldReader {
+public record GlobUnionFieldReader(Integer fieldNumber, GlobUnionField field, TypeWithReader[] types, GlobSetGlobAccessor setAccessor) implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobUnionFieldReader.class);
-    private final Integer fieldNumber;
-    private final GlobUnionField field;
-    private final TypeWithReader[] types;
-    private final GlobSetGlobAccessor setAccessor;
 
     public GlobUnionFieldReader(Integer fieldNumber, GlobUnionField field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
-        this.fieldNumber = fieldNumber;
-        this.field = field;
-        setAccessor = field.getGlobType().getSetAccessor(field);
-        types = GlobArrayUnionFieldReader.initTypesByIndex(field, field.getTargetTypes(), globTypeFieldReadersFactory);
+        this(fieldNumber,
+                field,
+                GlobArrayUnionFieldReader.initTypesByIndex(field, field.getTargetTypes(), globTypeFieldReadersFactory),
+                field.getGlobType().getSetAccessor(field));
     }
 
     public record TypeWithReader(GlobType type, GlobTypeFieldReaders readers) {

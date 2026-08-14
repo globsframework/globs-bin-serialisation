@@ -17,18 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.security.InvalidParameterException;
 import java.util.Collection;
 
-public final class GlobArrayUnionFieldReader implements FieldReader {
+public record GlobArrayUnionFieldReader(Integer fieldNumber, GlobArrayUnionField field, GlobUnionFieldReader.TypeWithReader[] types, GlobSetGlobArrayAccessor setAccessor) implements FieldReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobArrayUnionFieldReader.class);
-    private final Integer fieldNumber;
-    private final GlobArrayUnionField field;
-    private final GlobUnionFieldReader.TypeWithReader[] types;
-    private final GlobSetGlobArrayAccessor setAccessor;
 
     public GlobArrayUnionFieldReader(Integer fieldNumber, GlobArrayUnionField field, GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
-        this.fieldNumber = fieldNumber;
-        this.field = field;
-        setAccessor = field.getGlobType().getSetAccessor(field);
-        types = initTypesByIndex(field, field.getTargetTypes(), globTypeFieldReadersFactory);
+        this(fieldNumber,
+                field,
+                initTypesByIndex(field, field.getTargetTypes(), globTypeFieldReadersFactory),
+                field.getGlobType().getSetAccessor(field));
     }
 
     public static GlobUnionFieldReader.TypeWithReader[] initTypesByIndex(Field field, Collection<GlobType> targetTypes,

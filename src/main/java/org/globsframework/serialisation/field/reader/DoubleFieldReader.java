@@ -7,15 +7,12 @@ import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
 
-public final class DoubleFieldReader implements FieldReader {
-    private final int fieldNumber;
-    private final DoubleField field;
-    private final GlobSetDoubleAccessor setAccessor;
+public record DoubleFieldReader(int fieldNumber, DoubleField field, GlobSetDoubleAccessor setAccessor) implements FieldReader {
 
     public DoubleFieldReader(int fieldNumber, DoubleField field) {
-        this.fieldNumber = fieldNumber;
-        this.field = field;
-        setAccessor = field.getGlobType().getSetAccessor(field);
+        this(fieldNumber,
+                field,
+                field.getGlobType().getSetAccessor(field));
     }
 
     public void read(MutableGlob data, int tag, int tagWireType, CodedInputStream inputStream) {
