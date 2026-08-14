@@ -20,6 +20,17 @@ mvn -s settings.xml -B package      # what CI runs (settings.xml pulls the GitHu
 
 Tests are a mix of JUnit 3 (`BinReaderTest extends TestCase`) and JUnit 4 (`PerfReadWriteTest` with `@Test`); surefire auto-detects the JUnit 4 provider and runs both. `PerfReadWriteTest` is a benchmark that runs as part of `mvn test` and prints throughput to stdout.
 
+`GeneratedGlobPerfTest` is a JMH benchmark (test-scoped `jmh-core` + the annotation processor in the compiler
+plugin, and `globs-generate` 5.3-SNAPSHOT, which needs an `mvn install` there). It writes four *different*
+GlobTypes — a single type makes the loop's call sites monomorphic and says nothing — each carrying a nested Glob
+and a nested Glob array of its own type, under core's `DefaultGlob` and both ASM flavours (`GlobFlavour`, a
+`@Param`, so JMH forks one JVM per flavour). DEFAULT is the control: it has no caller, so it should not move.
+
+```bash
+mvn -o test-compile dependency:build-classpath -Dmdep.outputFile=/tmp/cp.txt
+java -cp target/classes:target/test-classes:$(cat /tmp/cp.txt) org.openjdk.jmh.Main GeneratedGlobPerfTest -p flavour=OBJECT
+```
+
 Releases go through `maven-release-plugin` + the `release` profile (GPG signing, sources/javadoc, Sonatype Central). `pom.xml.releaseBackup` and `release.properties` in the working tree are leftovers of an interrupted/complete release run, not source files.
 
 ## Architecture
@@ -55,7 +66,7 @@ The three-layer structure repeats symmetrically for readers and writers:
 
 The `FieldWriter[]` loop is one call site for every `FieldWriter` class in the process, and each writer's `getAccessor.get(data)` is another: both megamorphic, neither inlined. Core's `model/generate/read/` SPI exists to remove exactly that, so `FieldWriter` **extends `FieldValueFunction<Object, CodedOutputStream, Void>`** — every writer has a second entry point, `call(isSet, isNull, value, out, null)`, handed the value instead of fetching it.
 
-`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `GenerateCaller.generatedCallerFor(type, ...)` — for a `GeneratedFunctionCaller` over those same writers, rather than testing `GlobGenerateFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `GenerateCallerService` of `-Dglobs.caller` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
+`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `GenerateCaller.generatedCallerFor(type, ...)` — for a `GeneratedFunctionCallerWrite` over those same writers, rather than testing `GlobGenerateFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `GenerateCallerService` of `-Dglobs.caller` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
 
 `generatedCallerFor` and not `callerFor`: null means "nobody can generate this", and the loop below is a *better* answer than the `DefaultFunctionCaller` `callerFor` would hand back — that one reads through `Glob.getValue` rather than the typed accessor each writer holds, and calls the writers of fields that have no field number, which `NullFieldWriter` makes free here. Measured, it is 10-20 % behind the loop.
 
@@ -66,6 +77,34 @@ Three things to respect:
 - **the caller is guarded by `glob.getClass() == generatedGlobClass`** (captured from `type.instantiate()`). A generated caller reads the fields of its own Glob class directly, so a `MutableGlob` from a custom `GlobInstantiator` has to take the loop rather than a `ClassCastException`. One reference compare per glob, and `null` when there is no caller, which is why there is no second test.
 
 Measured end to end (200k globs of 4 / 20 / 40 fields, write only, `globs-generate` object flavour), caller off → on: **16.9 → 19.8**, **2.81 → 4.46**, **1.15 → 2.20 M globs/s** (+17 % / +59 % / +91 %). Note the baseline that matters: with generated globs and *no* caller, 40 fields writes at 1.15 M globs/s against **1.95** for core's plain `DefaultGlob` — generation alone makes this module slower, because one accessor class per field is more receivers at the same megamorphic call site. The caller is what makes generation pay here.
+
+**The writers are `record`s, and that is a performance decision, not a style one.** The caller gives the first
+call site a constant receiver — each writer sits in a `static final` of the generated class — but once `call` is
+inlined, reading `this.fieldNumber` or `this.getAccessor` only folds to a constant if C2 *trusts* the class with
+its final instance fields, which it does for records, hidden classes and lambdas, and not for an ordinary class
+(`TrustFinalNonStaticFields` is off by default). Measured on `GeneratedGlobPerfTest.write` OBJECT, five forks
+each, A/B/A: **207.8k → 221.7k ops/s, +6.7 %** for a mechanical change. Two consequences when editing a writer:
+the convenience constructor `(number, field)` now delegates to the canonical one, and it must **cast the
+accessor** — `GlobType.getGetAccessor` is `<T extends GlobGetAccessor> T`, so without the cast the inferred type
+makes the convenience constructor applicable to its own delegation and javac reports a *recursive constructor
+invocation*. `NullFieldWriter` stays a plain class: a stateless singleton has nothing to fold.
+
+**The nested case looks like the same opportunity and is not — it was tried and it loses.**
+`GlobFieldWriter` / `GlobArrayFieldWriter` / the two union writers hold a `GlobTypeFieldWriters` and delegate a
+whole sub-Glob to it, a *call* through a field, and `GlobTypeFieldWriters.caller` is **non-final** (it cannot
+be: `initCaller` runs after the array is filled, itself after the instance is published so recursive types
+resolve), so that call is never folded. The prototype that removes the obstacle — a `DirectGlobFieldWriter`
+record holding the child's caller and Glob class directly, usable whenever the child was complete when the
+writer was built, i.e. no cycle through that field — measures **1.76M → 1.54M ops/s on
+`GeneratedGlobPerfTest.writeNested`, −12 %**, and −0.7 % on `write`. It was deleted rather than kept.
+
+The reason is in `-XX:+PrintInlining`: with the descent folded, C2 inlines the child's whole generated
+`call` (235 bytes for these shapes) into the parent's, then the grandchild's into that, and on a tree of 15
+Globs it runs into **`NodeCountInliningCutoff`** and `size > DesiredMethodLimit` partway down — so the deep
+levels end up compiled *worse* than when each type's `call` was its own unit. The unfoldable field is acting as
+an inlining barrier, and here that barrier is worth more than the dispatch it costs. Which also says the leaf
+gain (+6.7 %) and the nested gain are not the same trade at all: fold what is a leaf, keep a boundary where a
+whole sub-tree hangs. Do not "fix" this by moving `initCaller` into the constructor.
 
 ### Reading and writing
 

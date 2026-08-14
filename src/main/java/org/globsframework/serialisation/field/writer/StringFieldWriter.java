@@ -6,13 +6,11 @@ import org.globsframework.core.model.globaccessor.get.GlobGetStringAccessor;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public final class StringFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobGetStringAccessor getAccessor;
+public record StringFieldWriter(int fieldNumber, GlobGetStringAccessor getAccessor) implements FieldWriter {
 
     public StringFieldWriter(Integer fieldNumber, StringField field) {
-        this.fieldNumber = fieldNumber;
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber,
+                (GlobGetStringAccessor) field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

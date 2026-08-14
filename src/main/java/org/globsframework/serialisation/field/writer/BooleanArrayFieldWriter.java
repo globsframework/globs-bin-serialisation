@@ -6,13 +6,11 @@ import org.globsframework.core.model.globaccessor.get.GlobGetBooleanArrayAccesso
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public final class BooleanArrayFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobGetBooleanArrayAccessor getAccessor;
+public record BooleanArrayFieldWriter(int fieldNumber, GlobGetBooleanArrayAccessor getAccessor) implements FieldWriter {
 
     public BooleanArrayFieldWriter(Integer fieldNumber, BooleanArrayField field) {
-        this.fieldNumber = fieldNumber;
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber,
+                (GlobGetBooleanArrayAccessor) field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

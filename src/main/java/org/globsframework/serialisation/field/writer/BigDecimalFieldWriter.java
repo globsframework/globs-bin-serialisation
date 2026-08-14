@@ -8,13 +8,11 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 
 import java.math.BigDecimal;
 
-public final class BigDecimalFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobGetBigDecimalAccessor getAccessor;
+public record BigDecimalFieldWriter(int fieldNumber, GlobGetBigDecimalAccessor getAccessor) implements FieldWriter {
 
     public BigDecimalFieldWriter(Integer fieldNumber, BigDecimalField field) {
-        this.fieldNumber = fieldNumber;
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber,
+                (GlobGetBigDecimalAccessor) field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

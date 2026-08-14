@@ -13,20 +13,15 @@ import java.util.Map;
 
 import static org.globsframework.serialisation.field.writer.GlobArrayUnionFieldWriter.initTypesByIndex;
 
-public final class GlobUnionFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobUnionField field;
-    private final Map<GlobType, IndiceWithWriter> types;
-    private final GlobGetGlobAccessor getAccessor;
+public record GlobUnionFieldWriter(int fieldNumber, GlobUnionField field, Map<GlobType, IndiceWithWriter> types,
+                                   GlobGetGlobAccessor getAccessor) implements FieldWriter {
 
     public record IndiceWithWriter(int indice, GlobTypeFieldWriters fieldWriters) {
     }
 
     public GlobUnionFieldWriter(int fieldNumber, GlobUnionField field, GlobTypeFieldWritersFactory fieldWritersFactory) {
-        this.fieldNumber = fieldNumber;
-        this.field = field;
-        types = initTypesByIndex(field, field.getTargetTypes(), fieldWritersFactory);
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber, field, initTypesByIndex(field, field.getTargetTypes(), fieldWritersFactory),
+                field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

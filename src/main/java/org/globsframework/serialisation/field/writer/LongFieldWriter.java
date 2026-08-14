@@ -6,13 +6,11 @@ import org.globsframework.core.model.globaccessor.get.GlobGetLongAccessor;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public final class LongFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobGetLongAccessor getAccessor;
+public record LongFieldWriter(int fieldNumber, GlobGetLongAccessor getAccessor) implements FieldWriter {
 
     public LongFieldWriter(Integer fieldNumber, LongField field) {
-        this.fieldNumber = fieldNumber;
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber,
+                (GlobGetLongAccessor) field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

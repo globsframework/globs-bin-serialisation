@@ -8,13 +8,11 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 
 import java.time.LocalDate;
 
-public final class DateFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobGetDateAccessor getAccessor;
+public record DateFieldWriter(int fieldNumber, GlobGetDateAccessor getAccessor) implements FieldWriter {
 
     public DateFieldWriter(Integer fieldNumber, DateField field) {
-        this.fieldNumber = fieldNumber;
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber,
+                (GlobGetDateAccessor) field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

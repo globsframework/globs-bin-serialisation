@@ -122,6 +122,13 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.openjdk.jmh</groupId>
+                            <artifactId>jmh-generator-annprocess</artifactId>
+                            <version>1.37</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
         </plugins>
@@ -139,12 +146,25 @@
             <version>1.0.0</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.globsframework</groupId>-->
-<!--            <artifactId>globs-generate</artifactId>-->
-<!--            <version>4.1.1</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!-- test only : GeneratedGlobPerfTest measures the writers over Globs this generates -->
+        <dependency>
+            <groupId>org.globsframework</groupId>
+            <artifactId>globs-generate</artifactId>
+            <version>5.3-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.37</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.37</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

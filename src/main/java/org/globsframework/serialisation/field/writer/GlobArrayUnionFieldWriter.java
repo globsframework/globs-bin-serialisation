@@ -15,17 +15,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class GlobArrayUnionFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobArrayUnionField field;
-    private final Map<GlobType, GlobUnionFieldWriter.IndiceWithWriter> types;
-    private final GlobGetGlobArrayAccessor getAccessor;
+public record GlobArrayUnionFieldWriter(int fieldNumber, GlobArrayUnionField field,
+                                        Map<GlobType, GlobUnionFieldWriter.IndiceWithWriter> types,
+                                        GlobGetGlobArrayAccessor getAccessor) implements FieldWriter {
 
     public GlobArrayUnionFieldWriter(int fieldNumber, GlobArrayUnionField field, GlobTypeFieldWritersFactory fieldWritersFactory) {
-        this.fieldNumber = fieldNumber;
-        this.field = field;
-        types = initTypesByIndex(field, field.getTargetTypes(), fieldWritersFactory);
-        getAccessor = field.getGlobType().getGetAccessor(field);
+        this(fieldNumber, field, initTypesByIndex(field, field.getTargetTypes(), fieldWritersFactory),
+                field.getGlobType().getGetAccessor(field));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {

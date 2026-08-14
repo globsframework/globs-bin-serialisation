@@ -8,15 +8,12 @@ import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldWritersFactory;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
-public final class GlobArrayFieldWriter implements FieldWriter {
-    private final int fieldNumber;
-    private final GlobGetGlobArrayAccessor getAccessor;
-    private final GlobTypeFieldWriters globTypeFieldWriters;
+public record GlobArrayFieldWriter(int fieldNumber, GlobGetGlobArrayAccessor getAccessor, GlobTypeFieldWriters globTypeFieldWriters) implements FieldWriter {
 
     public GlobArrayFieldWriter(int fieldNumber, GlobArrayField<?> field, GlobTypeFieldWritersFactory fieldWritersFactory) {
-        this.fieldNumber = fieldNumber;
-        getAccessor = field.getGlobType().getGetAccessor(field);
-        globTypeFieldWriters = fieldWritersFactory.create(field.getTargetType());
+        this(fieldNumber,
+                (GlobGetGlobArrayAccessor) field.getGlobType().getGetAccessor(field),
+                fieldWritersFactory.create(field.getTargetType()));
     }
 
     public void write(CodedOutputStream codedOutputStream, Glob data) {
