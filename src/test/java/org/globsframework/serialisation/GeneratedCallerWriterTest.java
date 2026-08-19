@@ -229,7 +229,7 @@ public class GeneratedCallerWriterTest {
 
         public GenerateCaller getGenerateCaller(GlobType type) {
             return new GenerateCaller() {
-                public <D, E> GeneratedFunctionCaller<D, E> create(GetFieldValueFunction<D, E> functions) {
+                public <D, E> GeneratedFunctionCaller<D, E> create(String name, GetFieldValueFunction<D, E> functions) {
                     GeneratedFunctionCaller<D, E> delegate = new DefaultFunctionCaller<>(type, functions);
                     return (data, ctx1, ctx2) -> {
                         CALLS.incrementAndGet();
@@ -270,7 +270,7 @@ public class GeneratedCallerWriterTest {
             return delegate.getGetValueAccessor(field);
         }
 
-        public <D, E> GeneratedFunctionCaller<D, E> create(GetFieldValueFunction<D, E> getFieldValueFunction) {
+        public <D, E> GeneratedFunctionCaller<D, E> create(String name, GetFieldValueFunction<D, E> getFieldValueFunction) {
             return new DefaultFunctionCaller<>(getGlobType(), getFieldValueFunction);
         }
     }

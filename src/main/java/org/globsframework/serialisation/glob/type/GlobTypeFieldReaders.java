@@ -1,5 +1,6 @@
 package org.globsframework.serialisation.glob.type;
 
+import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.model.generate.write.GeneratedCallerWrite;
 import org.globsframework.core.model.generate.write.GeneratedFunctionCallerWrite;
 import org.globsframework.core.model.generate.write.MutableFunctionWrite;
@@ -32,9 +33,13 @@ public final class GlobTypeFieldReaders {
      * than the looped DefaultFunctionCallerWrite -- an index is cheaper than its binary search, for the same
      * megamorphic call at the end. So this costs nothing when {@code -Dglobs.callerWrite} is unset.
      * <p>
+     * The name is the identity of the emitted class, and it has to carry the type : a write-side caller is
+     * built from functions alone, so nothing else here tells one type's readers from another's. Constant for
+     * a given type, which is what makes the generated class the same one from one run to the next.
+     * <p>
      * Must be called after the FieldReader[] is filled, and before the readers are used.
      */
-    public void initCaller() {
+    public void initCaller(GlobType type) {
         GeneratedFunctionCallerWrite factory = GeneratedFunctionCallerWrite.getGenerated();
         if (factory == null) {
             return;
@@ -47,7 +52,8 @@ public final class GlobTypeFieldReaders {
             }
         }
         // an unknown field number is skipped, exactly as the array answers UnknownFieldReader for it
-        caller = factory.create(functions, UnknownFieldReader.INSTANCE, CodedInputStream.END_OF_GLOB);
+        caller = factory.create("binser.read." + type.getName(), functions, UnknownFieldReader.INSTANCE,
+                CodedInputStream.END_OF_GLOB);
     }
 
     /** null when nothing could generate one : the reader then dispatches through {@link #get} itself. */

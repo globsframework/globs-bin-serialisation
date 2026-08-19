@@ -39,7 +39,10 @@ public final class GlobTypeFieldWriters {
      * Must be called after the FieldWriter[] is filled, and before the writers are used.
      */
     public void initCaller(GlobType type) {
-        GeneratedFunctionCaller<CodedOutputStream, Void> generated = GenerateCaller.generatedCallerFor(type,
+        // the name is the identity of the emitted class : the purpose only, since generatedCallerFor adds
+        // the type it is generating over
+        GeneratedFunctionCaller<CodedOutputStream, Void> generated = GenerateCaller.generatedCallerFor(
+                "binser.write", type,
                 new GenerateCaller.GetFieldValueFunction<CodedOutputStream, Void>() {
                     @SuppressWarnings("unchecked")
                     public <T> FieldValueFunction<T, CodedOutputStream, Void> create(Field field) {

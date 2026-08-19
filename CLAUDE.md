@@ -72,7 +72,7 @@ The three-layer structure repeats symmetrically for readers and writers:
 
 The `FieldWriter[]` loop is one call site for every `FieldWriter` class in the process, and each writer's `getAccessor.get(data)` is another: both megamorphic, neither inlined. Core's `model/generate/read/` SPI exists to remove exactly that, so `FieldWriter` **extends `FieldValueFunction<Object, CodedOutputStream, Void>`** — every writer has a second entry point, `call(isSet, isNull, value, out, null)`, handed the value instead of fetching it.
 
-`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `GenerateCaller.generatedCallerFor(type, ...)` — for a `GeneratedFunctionCaller` over those same writers, rather than testing `GlobGenerateFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `GenerateCallerService` of `-Dglobs.caller` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
+`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `GenerateCaller.generatedCallerFor("binser.write", type, ...)` — for a `GeneratedFunctionCaller` over those same writers, rather than testing `GlobGenerateFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `GenerateCallerService` of `-Dglobs.caller` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
 
 `generatedCallerFor` and not `callerFor`: null means "nobody can generate this", and the loop below is a *better* answer than the `DefaultFunctionCaller` `callerFor` would hand back — that one reads through `Glob.getValue` rather than the typed accessor each writer holds, and calls the writers of fields that have no field number, which `NullFieldWriter` makes free here. Measured, it is 10-20 % behind the loop.
 
@@ -141,11 +141,19 @@ The pieces map one to one onto the read loop that was already there:
 | the fallback | `UnknownFieldReader.INSTANCE`, which skips — the same answer the array gives for a number it has no reader for |
 | `endLoop` | `END_OF_GLOB` |
 
-`GlobTypeFieldReaders.initCaller()` builds it, at the end of `DefaultGlobTypeFieldReadersFactory.create` and
+`GlobTypeFieldReaders.initCaller(type)` builds it, at the end of `DefaultGlobTypeFieldReadersFactory.create` and
 for the same reason as on the write side (the container is published before the fields are visited, so
 recursive types resolve). It asks `GeneratedFunctionCallerWrite.**getGenerated()**`, not `get()`: null means
 "nobody can generate this", and the array is a *better* answer than the looped `DefaultFunctionCallerWrite`,
 an index being cheaper than its binary search for the same megamorphic call at the end.
+
+**The name both `create` calls now take** (`globs` 5.12) is the identity of the class a generating
+implementation emits, and what makes that class the same one from one run to the next — see `CallerName` in
+core. On the write side it has to carry the type (`"binser.read." + type.getName()`), which is why
+`initCaller` takes the `GlobType` it otherwise has no use for: a write caller is built from functions alone,
+so nothing else tells one type's readers from another's. On the read side `"binser.write"` is enough, the
+generator adding the type it is generating over. Build it from something constant in the source: a name that
+varies per run is accepted and silently gives up the identity it was asked for.
 
 Two things to keep in mind:
 

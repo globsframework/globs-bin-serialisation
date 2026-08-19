@@ -44,7 +44,7 @@ public class DefaultGlobTypeFieldReadersFactory implements GlobTypeFieldReadersF
         }
 
         // only now : the caller captures the readers, and they are only all there at this point
-        v.initCaller();
+        v.initCaller(globType);
 
         return v;
     }
