@@ -27,7 +27,7 @@ public record GlobArrayFieldWriter(int fieldNumber, GlobGetGlobArrayAccessor get
         }
     }
 
-    /** The same thing driven by a GeneratedFunctionCaller : isSet / isNull / the value come from it. */
+    /** The same thing driven by a FromGlobCaller : isSet / isNull / the value come from it. */
     public void call(boolean isSet, boolean isNull, Object value, CodedOutputStream codedOutputStream, Void ignored) {
         if (isNull) {
             if (isSet) {

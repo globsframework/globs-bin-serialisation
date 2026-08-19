@@ -1,9 +1,9 @@
 package org.globsframework.serialisation.glob.type;
 
 import org.globsframework.core.metamodel.GlobType;
-import org.globsframework.core.model.generate.write.GeneratedCallerWrite;
-import org.globsframework.core.model.generate.write.GeneratedFunctionCallerWrite;
-import org.globsframework.core.model.generate.write.MutableFunctionWrite;
+import org.globsframework.core.model.caller.ToGlobCaller;
+import org.globsframework.core.model.caller.ToGlobCallerFactory;
+import org.globsframework.core.model.caller.ToGlobFunction;
 import org.globsframework.serialisation.field.FieldReader;
 import org.globsframework.serialisation.field.reader.UnknownFieldReader;
 import org.globsframework.serialisation.stream.CodedInputStream;
@@ -17,7 +17,7 @@ public final class GlobTypeFieldReaders {
     // Set by initCaller once the array is filled -- it cannot be built in the constructor, since the factory
     // publishes this instance before visiting the fields so that recursive types resolve. Null when nothing
     // can generate one, and then the loop below is the only path.
-    private GeneratedCallerWrite<CodedInputStream, Void, Void> caller;
+    private ToGlobCaller<CodedInputStream, Void, Void> caller;
 
     public GlobTypeFieldReaders(FieldReader[] fieldReaders) {
         this.fieldReaders = fieldReaders;
@@ -25,13 +25,13 @@ public final class GlobTypeFieldReaders {
 
     /**
      * Asks core for a caller over these readers, which is the whole point of them implementing
-     * MutableFunctionWrite : a generated one holds each reader in a static final field and dispatches through
+     * ToGlobFunction : a generated one holds each reader in a static final field and dispatches through
      * a switch on the field number, so reading a field is a monomorphic call instead of the megamorphic one
      * the array lookup makes over every FieldReader class in the process.
      * <p>
-     * getGenerated, not get : null means "nobody can generate this", and the array below is a better answer
-     * than the looped DefaultFunctionCallerWrite -- an index is cheaper than its binary search, for the same
-     * megamorphic call at the end. So this costs nothing when {@code -Dglobs.callerWrite} is unset.
+     * generated, not get : null means "nobody can generate this", and the array below is a better answer
+     * than the looped LoopToGlobCallerFactory -- an index is cheaper than its binary search, for the same
+     * megamorphic call at the end. So this costs nothing when {@code -Dglobs.caller.toGlob} is unset.
      * <p>
      * The name is the identity of the emitted class, and it has to carry the type : a write-side caller is
      * built from functions alone, so nothing else here tells one type's readers from another's. Constant for
@@ -40,11 +40,11 @@ public final class GlobTypeFieldReaders {
      * Must be called after the FieldReader[] is filled, and before the readers are used.
      */
     public void initCaller(GlobType type) {
-        GeneratedFunctionCallerWrite factory = GeneratedFunctionCallerWrite.getGenerated();
+        ToGlobCallerFactory factory = ToGlobCallerFactory.generated();
         if (factory == null) {
             return;
         }
-        SortedMap<Integer, MutableFunctionWrite<CodedInputStream, Void, Void>> functions = new TreeMap<>();
+        SortedMap<Integer, ToGlobFunction<CodedInputStream, Void, Void>> functions = new TreeMap<>();
         for (int fieldNumber = 0; fieldNumber < fieldReaders.length; fieldNumber++) {
             FieldReader fieldReader = fieldReaders[fieldNumber];
             if (fieldReader != UnknownFieldReader.INSTANCE) {
@@ -57,7 +57,7 @@ public final class GlobTypeFieldReaders {
     }
 
     /** null when nothing could generate one : the reader then dispatches through {@link #get} itself. */
-    public GeneratedCallerWrite<CodedInputStream, Void, Void> caller() {
+    public ToGlobCaller<CodedInputStream, Void, Void> caller() {
         return caller;
     }
 

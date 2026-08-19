@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `org.globsframework:globs-bin-serialisation` — binary serialisation of `Glob` objects in a TLV (Type-Length-Value) format inspired by Protocol Buffers. Unlike the default serialisation shipped in the `globs` core library (which writes values in field-declaration order and is therefore *not* backward compatible), this format tags every value with a field number so readers can skip unknown fields and tolerate schema evolution.
 
-Single Maven module, Java 21 (`maven-compiler-plugin` `source`/`target` 21 — note the GitHub workflows still set up JDK 17, so CI and the POM disagree). Depends on `org.globsframework:globs` (the core Glob metamodel, **5.11-SNAPSHOT** — the writers need `model/generate/read/`, so this module now tracks a core snapshot: `mvn install` in `globsframework/` before building it) and `jspecify`.
+Single Maven module, Java 21 (`maven-compiler-plugin` `source`/`target` 21 — note the GitHub workflows still set up JDK 17, so CI and the POM disagree). Depends on `org.globsframework:globs` (the core Glob metamodel, **5.11-SNAPSHOT** — the writers need `model/caller/`, so this module now tracks a core snapshot: `mvn install` in `globsframework/` before building it) and `jspecify`.
 
 ## Commands
 
@@ -30,11 +30,11 @@ and a nested Glob array of its own type, under core's `DefaultGlob` and both ASM
 mvn -o test-compile dependency:build-classpath -Dmdep.outputFile=/tmp/cp.txt
 java -cp target/classes:target/test-classes:$(cat /tmp/cp.txt) org.openjdk.jmh.Main GeneratedGlobPerfTest -p flavour=OBJECT
 # the read arms take the generated caller only with the property, which JMH must pass to its forks :
-#   -jvmArgsAppend "-Dglobs.callerWrite=org.globsframework.model.generator.AsmCallerWriteGeneratorService"
+#   -jvmArgsAppend "-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService"
 ```
 
 The suite is worth running **both ways** — `mvn -o test` exercises the array path, and the same command with
-`-Dglobs.callerWrite=…` (surefire forwards it to its fork) exercises the generated switch. `BinReaderTest`
+`-Dglobs.caller.toGlob=…` (surefire forwards it to its fork) exercises the generated switch. `BinReaderTest`
 round-trips every field kind, so it is what says the two paths read the same thing.
 
 Releases go through `maven-release-plugin` + the `release` profile (GPG signing, sources/javadoc, Sonatype Central). `pom.xml.releaseBackup` and `release.properties` in the working tree are leftovers of an interrupted/complete release run, not source files.
@@ -70,11 +70,11 @@ The three-layer structure repeats symmetrically for readers and writers:
 
 ### Writing through a generated caller
 
-The `FieldWriter[]` loop is one call site for every `FieldWriter` class in the process, and each writer's `getAccessor.get(data)` is another: both megamorphic, neither inlined. Core's `model/generate/read/` SPI exists to remove exactly that, so `FieldWriter` **extends `FieldValueFunction<Object, CodedOutputStream, Void>`** — every writer has a second entry point, `call(isSet, isNull, value, out, null)`, handed the value instead of fetching it.
+The `FieldWriter[]` loop is one call site for every `FieldWriter` class in the process, and each writer's `getAccessor.get(data)` is another: both megamorphic, neither inlined. Core's `model/caller/` SPI exists to remove exactly that, so `FieldWriter` **extends `FromGlobFunction<Object, CodedOutputStream, Void>`** — every writer has a second entry point, `call(isSet, isNull, value, out, null)`, handed the value instead of fetching it.
 
-`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `GenerateCaller.generatedCallerFor("binser.write", type, ...)` — for a `GeneratedFunctionCaller` over those same writers, rather than testing `GlobGenerateFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `GenerateCallerService` of `-Dglobs.caller` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
+`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `FromGlobCallerFactory.generatedCallerFor("binser.write", type, ...)` — for a `FromGlobCaller` over those same writers, rather than testing `CallerGlobFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `FromGlobCallerService` of `-Dglobs.caller.fromGlob` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
 
-`generatedCallerFor` and not `callerFor`: null means "nobody can generate this", and the loop below is a *better* answer than the `DefaultFunctionCaller` `callerFor` would hand back — that one reads through `Glob.getValue` rather than the typed accessor each writer holds, and calls the writers of fields that have no field number, which `NullFieldWriter` makes free here. Measured, it is 10-20 % behind the loop.
+`generatedCallerFor` and not `callerFor`: null means "nobody can generate this", and the loop below is a *better* answer than the `LoopFromGlobCaller` `callerFor` would hand back — that one reads through `Glob.getValue` rather than the typed accessor each writer holds, and calls the writers of fields that have no field number, which `NullFieldWriter` makes free here. Measured, it is 10-20 % behind the loop.
 
 Three things to respect:
 
@@ -98,7 +98,7 @@ invocation*. `NullFieldWriter` stays a plain class: a stateless singleton has no
 **The readers are records for the same reason**, and there the experiment comes with its own control: the
 generated caller holds each reader in a `static final`, but the array path reaches the very same objects
 through `fieldReaders[n]`, where the receiver is *not* a constant and nothing can fold. Measured with and
-without `-Dglobs.callerWrite`, five forks each — the caller arm gains **read 88.7k → 92.1k (+3.8 %)** and
+without `-Dglobs.caller.toGlob`, five forks each — the caller arm gains **read 88.7k → 92.1k (+3.8 %)** and
 **readNested 583.6k → 655.4k (+12.3 %)**, while the array arm does not move (75.7k → 76.1k, 500.7k → 506.1k).
 That is the mechanism showing itself: no constant receiver, no folding, no gain.
 
@@ -128,37 +128,37 @@ whole sub-tree hangs. Do not "fix" this by moving `initCaller` into the construc
 ### Reading through a generated caller
 
 The same trade on the other side, and it is the *write* half of core's SPI that serves it — a parser filling a
-`MutableGlob` is exactly what `model/generate/write` describes. `FieldReader` therefore **extends
-`MutableFunctionWrite<CodedInputStream, Void, Void>`**: on top of `read(data, tag, wireType, in)` every reader
-carries `call(data, in, null, null)`, the same read driven by a `GeneratedCallerWrite`.
+`MutableGlob` is exactly what `model/caller` describes. `FieldReader` therefore **extends
+`ToGlobFunction<CodedInputStream, Void, Void>`**: on top of `read(data, tag, wireType, in)` every reader
+carries `call(data, in, null, null)`, the same read driven by a `ToGlobCaller`.
 
 The pieces map one to one onto the read loop that was already there:
 
 | the SPI wants | here |
 | --- | --- |
-| `CallAtWrite.getNextToCall()` | `CodedInputStream` itself: reads the tag, keeps it in `lastTag`, answers the field number — or `END_OF_GLOB` (-1, and a field number is never negative) when the wire type is `END_GLOB` |
-| the key of each `MutableFunctionWrite` | the proto field number, i.e. the index of `GlobTypeFieldReaders`' array |
+| `KeySource.nextKey()` | `CodedInputStream` itself: reads the tag, keeps it in `lastTag`, answers the field number — or `END_OF_GLOB` (-1, and a field number is never negative) when the wire type is `END_GLOB` |
+| the key of each `ToGlobFunction` | the proto field number, i.e. the index of `GlobTypeFieldReaders`' array |
 | the fallback | `UnknownFieldReader.INSTANCE`, which skips — the same answer the array gives for a number it has no reader for |
 | `endLoop` | `END_OF_GLOB` |
 
 `GlobTypeFieldReaders.initCaller(type)` builds it, at the end of `DefaultGlobTypeFieldReadersFactory.create` and
-for the same reason as on the write side (the container is published before the fields are visited, so
-recursive types resolve). It asks `GeneratedFunctionCallerWrite.**getGenerated()**`, not `get()`: null means
-"nobody can generate this", and the array is a *better* answer than the looped `DefaultFunctionCallerWrite`,
+for the same reason as on the to-Glob side (the container is published before the fields are visited, so
+recursive types resolve). It asks `ToGlobCallerFactory.**generated()**`, not `get()`: null means
+"nobody can generate this", and the array is a *better* answer than the looped `LoopToGlobCallerFactory`,
 an index being cheaper than its binary search for the same megamorphic call at the end.
 
 **The name both `create` calls now take** (`globs` 5.12) is the identity of the class a generating
 implementation emits, and what makes that class the same one from one run to the next — see `CallerName` in
-core. On the write side it has to carry the type (`"binser.read." + type.getName()`), which is why
+core. On the to-Glob side it has to carry the type (`"binser.read." + type.getName()`), which is why
 `initCaller` takes the `GlobType` it otherwise has no use for: a write caller is built from functions alone,
-so nothing else tells one type's readers from another's. On the read side `"binser.write"` is enough, the
+so nothing else tells one type's readers from another's. On the from-Glob side `"binser.write"` is enough, the
 generator adding the type it is generating over. Build it from something constant in the source: a name that
 varies per run is accepted and silently gives up the identity it was asked for.
 
 Two things to keep in mind:
 
-- **the tag is read back from the stream, not passed.** `MutableFunctionWrite` takes objects, so an `int`
-  argument would be boxed; instead `getNextToCall` leaves the tag in `lastTag` and each `call` reads
+- **the tag is read back from the stream, not passed.** `ToGlobFunction` takes objects, so an `int`
+  argument would be boxed; instead `nextKey` leaves the tag in `lastTag` and each `call` reads
   `lastTag()` / `lastWireType()` before doing anything else. That "before anything else" is load-bearing for
   nested Globs: descending into a sub-glob overwrites it.
 - **each reader writes its own one-line `call`**, delegating to its own `read`. A `default call` on the
@@ -170,7 +170,7 @@ Measured on `GeneratedGlobPerfTest`, OBJECT, five forks per arm, same build, cal
 little for the split — `read` is unchanged (75.6k → 75.7k in-window), `readNested` loses 2.6 %
 (514.2k → 500.7k), one `caller()` load and null test per glob, of which the nested shape does fifteen.
 
-Unlike the writers' caller, this one needs **`-Dglobs.callerWrite=org.globsframework.model.generator.AsmCallerWriteGeneratorService`**
+Unlike the writers' caller, this one needs **`-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService`**
 (and globs-generate on the classpath). It is independent of `globs.builder`: nothing in the emitted switch
 reads a Glob's layout, the readers write through `MutableGlob`, so there is no guard on the Glob's class here —
 where `GlobTypeFieldWriters` needs `glob.getClass() == generatedGlobClass`.

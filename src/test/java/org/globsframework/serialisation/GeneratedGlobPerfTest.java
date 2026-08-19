@@ -23,7 +23,7 @@ import java.util.Arrays;
  * Binary serialization of Globs, core's DefaultGlob against the two ASM flavours of globs-generate.
  * <p>
  * The point of the OBJECT / PRIMITIVE arms is the caller : for a generated type, `GlobTypeFieldWriters` gets a
- * `GeneratedFunctionCaller` holding each `FieldWriter` in a static final field, so the write of a field is a
+ * `FromGlobCaller` holding each `FieldWriter` in a static final field, so the write of a field is a
  * monomorphic call instead of the megamorphic one the loop makes over every FieldWriter class. DEFAULT has no
  * caller and takes the loop — it is the control that says the measurement is measuring that.
  * <p>

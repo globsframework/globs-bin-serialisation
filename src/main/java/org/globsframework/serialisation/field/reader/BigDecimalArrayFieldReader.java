@@ -28,7 +28,7 @@ public record BigDecimalArrayFieldReader(int fieldNumber, BigDecimalArrayField f
         }
     }
 
-    /** The same read, driven by a GeneratedCallerWrite : the CallAt has just read the tag. */
+    /** The same read, driven by a ToGlobCaller : the CallAt has just read the tag. */
     public void call(MutableGlob data, CodedInputStream inputStream, Void ignored, Void alsoIgnored) {
         read(data, inputStream.lastTag(), inputStream.lastWireType(), inputStream);
     }

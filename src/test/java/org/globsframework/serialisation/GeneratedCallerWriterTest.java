@@ -9,11 +9,11 @@ import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.GlobFactory;
 import org.globsframework.core.model.GlobFactoryService;
 import org.globsframework.core.model.MutableGlob;
-import org.globsframework.core.model.generate.read.DefaultFunctionCaller;
-import org.globsframework.core.model.generate.read.GenerateCaller;
-import org.globsframework.core.model.generate.read.GenerateCallerService;
-import org.globsframework.core.model.generate.read.GeneratedFunctionCaller;
-import org.globsframework.core.model.generate.read.GlobGenerateFactory;
+import org.globsframework.core.model.caller.LoopFromGlobCaller;
+import org.globsframework.core.model.caller.FromGlobCallerFactory;
+import org.globsframework.core.model.caller.FromGlobCallerService;
+import org.globsframework.core.model.caller.FromGlobCaller;
+import org.globsframework.core.model.caller.CallerGlobFactory;
 import org.globsframework.core.model.globaccessor.get.GlobGetAccessor;
 import org.globsframework.core.model.globaccessor.set.GlobSetAccessor;
 import org.globsframework.serialisation.model.FieldNumber;
@@ -33,11 +33,11 @@ import java.time.ZonedDateTime;
 import java.util.function.Supplier;
 
 /**
- * The writers go through the GeneratedFunctionCaller when the type's factory offers one, and the bytes must
+ * The writers go through the FromGlobCaller when the type's factory offers one, and the bytes must
  * not move : same field numbers, same order, same null-vs-unset behaviour.
  * <p>
  * The caller is exercised without depending on globs-generate — {@link CallerFactoryService} is a factory
- * that offers a plain DefaultFunctionCaller. What this module has to prove is not that the ASM one is fast,
+ * that offers a plain LoopFromGlobCaller. What this module has to prove is not that the ASM one is fast,
  * it is that FieldWriter.call and FieldWriter.write say the same thing.
  */
 public class GeneratedCallerWriterTest {
@@ -47,8 +47,8 @@ public class GeneratedCallerWriterTest {
     public void tearDown() {
         System.clearProperty("globs.builder");
         GlobFactoryService.Builder.reset();
-        System.clearProperty("globs.caller");
-        GenerateCallerService.Builder.reset();
+        System.clearProperty("globs.caller.fromGlob");
+        FromGlobCallerService.Builder.reset();
     }
 
     @Test
@@ -57,17 +57,17 @@ public class GeneratedCallerWriterTest {
         Types called = buildTypes("Called", CALLER_SERVICE);
 
         Assert.assertFalse("no caller without the service",
-                looped.proto().getGlobFactory() instanceof GlobGenerateFactory);
+                looped.proto().getGlobFactory() instanceof CallerGlobFactory);
         Assert.assertTrue("the service is what makes a caller available",
-                called.proto().getGlobFactory() instanceof GlobGenerateFactory);
+                called.proto().getGlobFactory() instanceof CallerGlobFactory);
 
         Assert.assertArrayEquals(write(looped), write(called));
     }
 
     /**
-     * The other way a caller can arrive : not from the type's factory but from the GenerateCallerService of
-     * {@code -Dglobs.caller}, which is how globs-generate offers one over a Glob it did not build. Nothing in
-     * this module knows about it — going through GenerateCaller rather than testing GlobGenerateFactory by
+     * The other way a caller can arrive : not from the type's factory but from the FromGlobCallerService of
+     * {@code -Dglobs.caller.fromGlob}, which is how globs-generate offers one over a Glob it did not build. Nothing in
+     * this module knows about it — going through FromGlobCallerFactory rather than testing CallerGlobFactory by
      * hand is the whole reason it works.
      * <p>
      * The stand-in service counts and delegates, so the assertion is that the writers asked at all; what it
@@ -78,16 +78,16 @@ public class GeneratedCallerWriterTest {
         Types types = buildTypes("Service", null);
         byte[] expected = write(types);
 
-        System.setProperty("globs.caller", CountingCallerService.class.getName());
-        GenerateCallerService.Builder.reset();
+        System.setProperty("globs.caller.fromGlob", CountingCallerService.class.getName());
+        FromGlobCallerService.Builder.reset();
         CountingCallerService.CALLS.set(0);
         try {
             byte[] actual = write(types);
             Assert.assertTrue("the writers never asked the service", CountingCallerService.CALLS.get() > 0);
             Assert.assertArrayEquals(expected, actual);
         } finally {
-            System.clearProperty("globs.caller");
-            GenerateCallerService.Builder.reset();
+            System.clearProperty("globs.caller.fromGlob");
+            FromGlobCallerService.Builder.reset();
         }
     }
 
@@ -224,13 +224,13 @@ public class GeneratedCallerWriterTest {
     }
 
     /** Counts what the writers asked it for, and hands back the looped caller. */
-    public static class CountingCallerService implements GenerateCallerService {
+    public static class CountingCallerService implements FromGlobCallerService {
         static final java.util.concurrent.atomic.AtomicInteger CALLS = new java.util.concurrent.atomic.AtomicInteger();
 
-        public GenerateCaller getGenerateCaller(GlobType type) {
-            return new GenerateCaller() {
-                public <D, E> GeneratedFunctionCaller<D, E> create(String name, GetFieldValueFunction<D, E> functions) {
-                    GeneratedFunctionCaller<D, E> delegate = new DefaultFunctionCaller<>(type, functions);
+        public FromGlobCallerFactory factoryFor(GlobType type) {
+            return new FromGlobCallerFactory() {
+                public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions) {
+                    FromGlobCaller<C1, C2> delegate = new LoopFromGlobCaller<>(type, functions);
                     return (data, ctx1, ctx2) -> {
                         CALLS.incrementAndGet();
                         delegate.call(data, ctx1, ctx2);
@@ -241,8 +241,8 @@ public class GeneratedCallerWriterTest {
     }
 
     /**
-     * A GlobFactoryService whose factories implement GlobGenerateFactory without generating anything : the
-     * globs are core's, and the caller is the looped DefaultFunctionCaller. Enough to put the writers on the
+     * A GlobFactoryService whose factories implement CallerGlobFactory without generating anything : the
+     * globs are core's, and the caller is the looped LoopFromGlobCaller. Enough to put the writers on the
      * caller path, which is what this module is responsible for.
      */
     public static class CallerFactoryService implements GlobFactoryService {
@@ -253,7 +253,7 @@ public class GeneratedCallerWriterTest {
         }
     }
 
-    private record CallerFactory(GlobFactory delegate) implements GlobGenerateFactory {
+    private record CallerFactory(GlobFactory delegate) implements CallerGlobFactory {
         public GlobType getGlobType() {
             return delegate.getGlobType();
         }
@@ -270,8 +270,8 @@ public class GeneratedCallerWriterTest {
             return delegate.getGetValueAccessor(field);
         }
 
-        public <D, E> GeneratedFunctionCaller<D, E> create(String name, GetFieldValueFunction<D, E> getFieldValueFunction) {
-            return new DefaultFunctionCaller<>(getGlobType(), getFieldValueFunction);
+        public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions) {
+            return new LoopFromGlobCaller<>(getGlobType(), functions);
         }
     }
 }

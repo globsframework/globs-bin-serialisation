@@ -6,8 +6,8 @@ import org.globsframework.core.model.GlobInstantiator;
 import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.utils.serialization.SerializedInput;
 import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
-import org.globsframework.core.model.generate.write.CallAtWrite;
-import org.globsframework.core.model.generate.write.GeneratedCallerWrite;
+import org.globsframework.core.model.caller.KeySource;
+import org.globsframework.core.model.caller.ToGlobCaller;
 import org.globsframework.serialisation.WireConstants;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
@@ -21,15 +21,15 @@ import java.time.ZonedDateTime;
 
 import static org.globsframework.serialisation.WireConstants.Type.END_GLOB;
 
-public final class CodedInputStream implements CallAtWrite {
-    /** what getNextToCall answers at the end of a glob; field numbers are never negative */
+public final class CodedInputStream implements KeySource {
+    /** what nextKey answers at the end of a glob; field numbers are never negative */
     public static final int END_OF_GLOB = -1;
 
     private final GlobInstantiator globInstantiator;
     private final GlobTypeFieldReadersManager globTypeFieldReadersManager;
     private final SerializedInput serializedInput;
-    // the tag getNextToCall has just read, which the FieldReader it names then reads back rather than being
-    // handed it : MutableFunctionWrite takes objects, and an int argument would have to be boxed
+    // the tag nextKey has just read, which the FieldReader it names then reads back rather than being
+    // handed it : ToGlobFunction takes objects, and an int argument would have to be boxed
     private int lastTag;
 
     public CodedInputStream(GlobInstantiator globInstantiator, GlobTypeFieldReadersManager globTypeFieldReadersManager, SerializedInput serializedInput) {
@@ -59,11 +59,11 @@ public final class CodedInputStream implements CallAtWrite {
     }
 
     /**
-     * The CallAtWrite of the read loop : the next field number on the wire, or END_OF_GLOB. The tag it comes
+     * The KeySource of the read loop : the next field number on the wire, or END_OF_GLOB. The tag it comes
      * from is kept for the reader that is about to run — the nested case is safe because a reader reads it
      * back before descending into a sub-glob, which is what overwrites it.
      */
-    public int getNextToCall() {
+    public int nextKey() {
         int tag = readTag();
         lastTag = tag;
         return WireConstants.getTagWireType(tag) == END_GLOB ? END_OF_GLOB : WireConstants.getTagFieldNumber(tag);
@@ -275,8 +275,8 @@ public final class CodedInputStream implements CallAtWrite {
     private Glob _readGlob(GlobType globType, GlobTypeFieldReaders globTypeFieldReaders) {
         MutableGlob data = globInstantiator.newGlob(globType);
         // one test per glob, not per field : with a caller the whole loop is the generated switch, without
-        // one it is the array below, which is what this reads when -Dglobs.callerWrite is unset
-        GeneratedCallerWrite<CodedInputStream, Void, Void> caller = globTypeFieldReaders.caller();
+        // one it is the array below, which is what this reads when -Dglobs.caller.toGlob is unset
+        ToGlobCaller<CodedInputStream, Void, Void> caller = globTypeFieldReaders.caller();
         if (caller != null) {
             caller.call(this, data, this, null, null);
             return data;

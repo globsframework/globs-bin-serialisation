@@ -3,9 +3,9 @@ package org.globsframework.serialisation.glob.type;
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.fields.Field;
 import org.globsframework.core.model.Glob;
-import org.globsframework.core.model.generate.read.FieldValueFunction;
-import org.globsframework.core.model.generate.read.GenerateCaller;
-import org.globsframework.core.model.generate.read.GeneratedFunctionCaller;
+import org.globsframework.core.model.caller.FromGlobFunction;
+import org.globsframework.core.model.caller.FromGlobCallerFactory;
+import org.globsframework.core.model.caller.FromGlobCaller;
 import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 
@@ -15,7 +15,7 @@ public final class GlobTypeFieldWriters {
     // Set by initCaller once the array is filled -- it cannot be built in the constructor, since the factory
     // publishes this instance before visiting the fields so that recursive types resolve. Both are null when
     // the type's factory generates nothing, and then the loop below is the only path.
-    private GeneratedFunctionCaller<CodedOutputStream, Void> caller;
+    private FromGlobCaller<CodedOutputStream, Void> caller;
     private Class<?> generatedGlobClass;
 
     public GlobTypeFieldWriters(FieldWriter[] fieldWriters) {
@@ -24,15 +24,15 @@ public final class GlobTypeFieldWriters {
 
     /**
      * Asks core for a caller over these writers, which is the whole point of them implementing
-     * FieldValueFunction : a generated one holds each writer in a static final field, so the write of a
+     * FromGlobFunction : a generated one holds each writer in a static final field, so the write of a
      * field is a monomorphic call instead of the megamorphic one the loop makes over every FieldWriter class.
      * <p>
-     * Through GenerateCaller rather than by testing GlobGenerateFactory here, so that both ways of getting
+     * Through FromGlobCallerFactory rather than by testing CallerGlobFactory here, so that both ways of getting
      * one reach this module : the type's own factory when the Globs are generated, and the
-     * GenerateCallerService of {@code -Dglobs.caller} when they are core's DefaultGlob.
+     * FromGlobCallerService of {@code -Dglobs.caller.fromGlob} when they are core's DefaultGlob.
      * <p>
      * generatedCallerFor, not callerFor : null means "nobody can generate this", and the loop below is a
-     * better answer than the DefaultFunctionCaller callerFor would hand back — it reads through the typed
+     * better answer than the LoopFromGlobCaller callerFor would hand back — it reads through the typed
      * accessor each writer holds rather than Glob.getValue, and NullFieldWriter makes the fields with no
      * field number free, where the caller would call them.
      * <p>
@@ -41,12 +41,12 @@ public final class GlobTypeFieldWriters {
     public void initCaller(GlobType type) {
         // the name is the identity of the emitted class : the purpose only, since generatedCallerFor adds
         // the type it is generating over
-        GeneratedFunctionCaller<CodedOutputStream, Void> generated = GenerateCaller.generatedCallerFor(
+        FromGlobCaller<CodedOutputStream, Void> generated = FromGlobCallerFactory.generatedCallerFor(
                 "binser.write", type,
-                new GenerateCaller.GetFieldValueFunction<CodedOutputStream, Void>() {
+                new FromGlobCallerFactory.Functions<CodedOutputStream, Void>() {
                     @SuppressWarnings("unchecked")
-                    public <T> FieldValueFunction<T, CodedOutputStream, Void> create(Field field) {
-                        return (FieldValueFunction<T, CodedOutputStream, Void>) fieldWriters[field.getIndex()];
+                    public <T> FromGlobFunction<T, CodedOutputStream, Void> forField(Field field) {
+                        return (FromGlobFunction<T, CodedOutputStream, Void>) fieldWriters[field.getIndex()];
                     }
                 });
         if (generated != null) {
