@@ -229,8 +229,9 @@ public class GeneratedCallerWriterTest {
 
         public FromGlobCallerFactory factoryFor(GlobType type) {
             return new FromGlobCallerFactory() {
-                public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions) {
-                    FromGlobCaller<C1, C2> delegate = new LoopFromGlobCaller<>(type, functions);
+                public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions,
+                                                             Field[] order) {
+                    FromGlobCaller<C1, C2> delegate = new LoopFromGlobCaller<>(type, functions, order);
                     return (data, ctx1, ctx2) -> {
                         CALLS.incrementAndGet();
                         delegate.call(data, ctx1, ctx2);
@@ -270,8 +271,8 @@ public class GeneratedCallerWriterTest {
             return delegate.getGetValueAccessor(field);
         }
 
-        public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions) {
-            return new LoopFromGlobCaller<>(getGlobType(), functions);
+        public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions, Field[] order) {
+            return new LoopFromGlobCaller<>(getGlobType(), functions, order);
         }
     }
 }
