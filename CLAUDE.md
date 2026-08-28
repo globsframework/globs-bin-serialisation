@@ -24,13 +24,18 @@ Tests are a mix of JUnit 3 (`BinReaderTest extends TestCase`) and JUnit 4 (`Perf
 plugin, and `globs-generate` 5.3-SNAPSHOT, which needs an `mvn install` there). It writes four *different*
 GlobTypes — a single type makes the loop's call sites monomorphic and says nothing — each carrying a nested Glob
 and a nested Glob array of its own type, under core's `DefaultGlob` and both ASM flavours (`GlobFlavour`, a
-`@Param`, so JMH forks one JVM per flavour). DEFAULT is the control: it has no caller, so it should not move.
+`@Param`, so JMH forks one JVM per flavour). DEFAULT is the control for `globs.builder`, *not* for the caller:
+its Globs are core's `DefaultGlob`, and both `globs.caller.*` services generate a caller over those just as well
+— DEFAULT only sits still when the properties are unset.
 
 ```bash
 mvn -o test-compile dependency:build-classpath -Dmdep.outputFile=/tmp/cp.txt
 java -cp target/classes:target/test-classes:$(cat /tmp/cp.txt) org.openjdk.jmh.Main GeneratedGlobPerfTest -p flavour=OBJECT
 # the read arms take the generated caller only with the property, which JMH must pass to its forks :
 #   -jvmArgsAppend "-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService"
+# the write arms get theirs from the type's own factory under -Dglobs.builder ; on DEFAULT (core's DefaultGlob)
+# the same property mechanism serves them :
+#   -Dglobs.caller.fromGlob=org.globsframework.model.generator.AsmCallerGeneratorService
 ```
 
 The suite is worth running **both ways** — `mvn -o test` exercises the array path, and the same command with
@@ -43,7 +48,7 @@ Releases go through `maven-release-plugin` + the `release` profile (GPG signing,
 
 ### Field numbers drive everything
 
-Each field that should be serialised carries a field number, either via the `@FieldNumber_(n)` annotation on the static field, or by passing `FieldNumber.create(n)` to the `GlobTypeBuilder.declareXxxField(...)` call (the tests use the latter). `FieldNumber` is the Glob-side representation of the `FieldNumber_` Java annotation, wired up with `GlobCreateFromAnnotation`. **A field with no field number is silently not written and not read** — both factories skip fields whose `FieldNumber` annotation is absent.
+Each field that should be serialised carries a field number by passing `FieldNumber.create(n)` to the `GlobTypeBuilder.declareXxxField(...)` call (the tests use the latter). **A field with no field number is silently not written and not read** — both factories skip fields whose `FieldNumber` annotation is absent.
 
 Unions (`GlobUnionField`, `GlobArrayUnionField`) additionally need `@UnionType_({@ChoiceType_(value = X.class, index = i), ...})` (or `UnionType.create(ChoiceType.create(name, i), ...)`) to map each concrete target type to a stable wire index. Type identity on the wire is that index, resolved back to a `GlobType` by *name* at reader/writer construction time.
 
@@ -83,6 +88,13 @@ Three things to respect:
 - **the caller is guarded by `glob.getClass() == generatedGlobClass`** (captured from `type.instantiate()`). A generated caller reads the fields of its own Glob class directly, so a `MutableGlob` from a custom `GlobInstantiator` has to take the loop rather than a `ClassCastException`. One reference compare per glob, and `null` when there is no caller, which is why there is no second test.
 
 Measured end to end (200k globs of 4 / 20 / 40 fields, write only, `globs-generate` object flavour), caller off → on: **16.9 → 19.8**, **2.81 → 4.46**, **1.15 → 2.20 M globs/s** (+17 % / +59 % / +91 %). Note the baseline that matters: with generated globs and *no* caller, 40 fields writes at 1.15 M globs/s against **1.95** for core's plain `DefaultGlob` — generation alone makes this module slower, because one accessor class per field is more receivers at the same megamorphic call site. The caller is what makes generation pay here.
+
+**On core's `DefaultGlob` the write caller pays just as well**, which is what says the gain is the loop and not
+the generated Glob. `GeneratedGlobPerfTest` DEFAULT (no `globs.builder`), `-Dglobs.caller.fromGlob=org.globsframework.model.generator.AsmCallerGeneratorService`
+off → on, five forks per arm: **write 178.1k → 210.6k ops/s (+18 %)**, **writeWidest (45 fields) 360.0k → 414.4k
+(+15 %)**, **writeNested 1.06M → 1.30M (+23 %)**. The writers and their accessors are the same objects in both
+flavours; what the caller removes — one megamorphic call site per `FieldWriter` class — is there whoever built
+the Glob.
 
 **The writers are `record`s, and that is a performance decision, not a style one.** The caller gives the first
 call site a constant receiver — each writer sits in a `static final` of the generated class — but once `call` is
@@ -170,10 +182,21 @@ Measured on `GeneratedGlobPerfTest`, OBJECT, five forks per arm, same build, cal
 little for the split — `read` is unchanged (75.6k → 75.7k in-window), `readNested` loses 2.6 %
 (514.2k → 500.7k), one `caller()` load and null test per glob, of which the nested shape does fifteen.
 
+**On core's `DefaultGlob` this one is a gain only on the nested shape**, unlike the writers'. DEFAULT, five
+forks per arm, same property off → on: **readNested 591.7k → 639.8k (+8 %)** but **read 102.9k → 98.5k, −4 %**.
+The regression is not noise — A/B/A on `read` alone, five forks each, gives **101.0k / 96.3k / 101.6k**. The
+readers are flavour-independent (they write through `MutableGlob`), so what differs is what they write *into*:
+under OBJECT the four shapes are four generated Glob classes, so each reader's `set` call site is polymorphic
+and the per-type generated caller is what splits it — under DEFAULT they all land on `DefaultGlob64`/`128`,
+there is nothing to split, and the switch is left racing an array index that predicts perfectly. That reading is
+inferred from the two numbers, not measured. Note the baseline it exposes: DEFAULT reads faster than OBJECT even
+with the caller on (98.5k against 88.7k), as on the write side — generation alone costs this module.
+
 Unlike the writers' caller, this one needs **`-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService`**
-(and globs-generate on the classpath). It is independent of `globs.builder`: nothing in the emitted switch
-reads a Glob's layout, the readers write through `MutableGlob`, so there is no guard on the Glob's class here —
-where `GlobTypeFieldWriters` needs `glob.getClass() == generatedGlobClass`.
+(and globs-generate on the classpath). It is mechanically independent of `globs.builder` — though the payoff is
+not, see just above: nothing in the emitted switch reads a Glob's layout, the readers write through
+`MutableGlob`, so there is no guard on the Glob's class here — where `GlobTypeFieldWriters` needs
+`glob.getClass() == generatedGlobClass`.
 
 ### Reading and writing
 

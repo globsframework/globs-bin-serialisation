@@ -4,13 +4,12 @@ import junit.framework.TestCase;
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.GlobTypeBuilder;
 import org.globsframework.core.metamodel.GlobTypeBuilderFactory;
-import org.globsframework.core.metamodel.annotations.Target;
-import org.globsframework.core.metamodel.annotations.Targets;
 import org.globsframework.core.metamodel.fields.*;
 import org.globsframework.core.model.Glob;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
-import org.globsframework.serialisation.model.*;
+import org.globsframework.serialisation.model.FieldNumber;
+import org.globsframework.serialisation.model.UnionType;
 import org.junit.Assert;
 
 import java.io.ByteArrayInputStream;
@@ -426,57 +425,28 @@ public class BinReaderTest extends TestCase {
         public static final GlobType TYPE;
         public static final String NAME = "Proto1";
 
-        @FieldNumber_(1)
         public static BooleanField booleanField;
-        @FieldNumber_(2)
         public static BooleanArrayField booleanArrayField;
-        @FieldNumber_(3)
         public static IntegerField intField;
-        @FieldNumber_(4)
         public static IntegerArrayField intArrayField;
-        @FieldNumber_(5)
         public static LongField longField;
-        @FieldNumber_(6)
         public static LongArrayField longArrayField;
-        @FieldNumber_(7)
         public static DoubleField doubleField;
-        @FieldNumber_(8)
         public static DoubleArrayField doubleArrayField;
-        @FieldNumber_(9)
         public static BigDecimalField bigDecimalField;
-        @FieldNumber_(10)
         public static BigDecimalArrayField bigDecimalArrayField;
-        @FieldNumber_(11)
         public static StringField strField;
-        @FieldNumber_(12)
         public static StringArrayField strArrayField;
-        @FieldNumber_(13)
         public static DateField dateField;
-        @FieldNumber_(14)
         public static DateTimeField dateTimeField;
-        @FieldNumber_(15)
         public static BytesField BytesField;
 
-        @Target(Proto1.class)
-        @FieldNumber_(16)
         public static GlobField<Proto1> globField;
 
-        @Target(Proto1.class)
-        @FieldNumber_(17)
         public static GlobArrayField<Proto1> globArrayField;
 
-        @Targets({Proto1.class, Proto2.class})
-        @FieldNumber_(18)
-        @UnionType_({
-                @UnionType_.ChoiceType_(value = Proto1.class, index = 1),
-                @UnionType_.ChoiceType_(value = Proto2.class, index = 2)})
         public static GlobUnionField globUnionField;
 
-        @Targets({Proto1.class, Proto2.class})
-        @FieldNumber_(19)
-        @UnionType_({
-                @UnionType_.ChoiceType_(value = Proto1.class, index = 1),
-                @UnionType_.ChoiceType_(value = Proto2.class, index = 2)})
         public static GlobArrayUnionField globArrayUnionField;
 
         static {
@@ -510,11 +480,10 @@ public class BinReaderTest extends TestCase {
         public static final GlobType TYPE;
         public static final String NAME = "Proto2";
 
-        @FieldNumber_(1)
         public static BooleanField booleanField;
 
         static {
-            GlobTypeBuilder globTypeBuilder =  GlobTypeBuilderFactory.create(NAME);
+            GlobTypeBuilder globTypeBuilder = GlobTypeBuilderFactory.create(NAME);
             booleanField = globTypeBuilder.declareBooleanField("booleanField", FieldNumber.create(1));
             TYPE = globTypeBuilder.build();
         }

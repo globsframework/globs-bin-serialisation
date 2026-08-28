@@ -2,8 +2,6 @@ package org.globsframework.serialisation.model;
 
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.metamodel.GlobTypeBuilder;
-import org.globsframework.core.metamodel.annotations.GlobCreateFromAnnotation;
-import org.globsframework.core.metamodel.annotations.InitUniqueKey;
 import org.globsframework.core.metamodel.fields.IntegerField;
 import org.globsframework.core.metamodel.impl.DefaultGlobTypeBuilder;
 import org.globsframework.core.model.Glob;
@@ -15,13 +13,11 @@ public class FieldNumber {
 
     public static final IntegerField fieldNumber;
 
-    @InitUniqueKey
     public static final Key KEY;
 
     static {
         GlobTypeBuilder typeBuilder = new DefaultGlobTypeBuilder("FieldNumber");
         fieldNumber = typeBuilder.declareIntegerField("fieldNumber");
-        typeBuilder.register(GlobCreateFromAnnotation.class, annotation -> create(((FieldNumber_) annotation).value()));
         TYPE = typeBuilder.build();
         KEY = KeyBuilder.newEmptyKey(TYPE);
     }
