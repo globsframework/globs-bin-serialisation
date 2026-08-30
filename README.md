@@ -1,7 +1,25 @@
-This library serializes Globs in a binary format that is backward compatible.
-It is a kind of TLV (Type Length Value) a la Google Protocol Buffer.
-The default binary serialization provided in Globs is more efficient but is not backward compatible, as the values are
-directly written in the order of the fields in the GlobType.
+# Globs Binary Serialisation
+
+Serialize [Glob](https://globsframework.org)s in a **backward-compatible binary format** — a TLV
+(Type Length Value) shape in the spirit of Google Protocol Buffers. Each field carries a stable number, so a
+reader built from an older version of the type skips what it does not know and keeps working.
+
+The default binary serialization shipped in Globs core is faster but *not* backward compatible: it writes the
+values in field-declaration order, so both ends must share the exact same `GlobType`.
+
+## Requirements
+
+Java 21, `org.globsframework:globs`.
+
+## Installation
+
+```xml
+<dependency>
+    <groupId>org.globsframework</groupId>
+    <artifactId>globs-bin-serialisation</artifactId>
+    <version>5.4.0</version>
+</dependency>
+```
 
 ## Declaring a type
 
@@ -84,3 +102,40 @@ globs back.
 
 Both factories also accept the Globs serialization streams instead of `java.io` ones:
 `binWriterFactory.create(SerializedOutput)` and `binReaderFactory.createFromStream(SerializedInput)`.
+
+
+## Performance
+
+Reading and writing go through a **caller** from core's `model/caller` SPI when one can be generated: the
+per-field writers are held in `static final` fields of a generated class, so each call site is monomorphic
+and inlines, instead of one megamorphic site shared by every writer class in the process. Put
+[globs-generate](https://github.com/globsframework/globs-generate) on the classpath and switch it on:
+
+```
+-Dglobs.caller.fromGlob=org.globsframework.model.generator.AsmCallerGeneratorService
+-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService
+```
+
+Measured on 200 000 globs of 4 / 20 / 40 fields, caller off → on: **16.9 → 19.8**, **2.81 → 4.46**,
+**1.15 → 2.20 M globs/s**. It pays on core's plain `DefaultGlob` too (+18 % on write, +23 % on a nested
+shape), which is the point: the gain is the removed dispatch, not the generated Glob class — generating the
+Glob classes *alone* actually makes this module slower.
+
+Whichever path a JVM takes, the bytes are identical; `GeneratedCallerWriterTest` holds the two together.
+
+## Building
+
+```bash
+mvn -o test
+```
+
+`CLAUDE.md` documents the wire format, the per-type reader/writer plans and the benchmark invocations.
+
+## License
+
+Apache License 2.0 — see <https://www.apache.org/licenses/LICENSE-2.0.txt>.
+
+## Links
+
+- [Globs Framework](https://globsframework.org)
+- [GitHub repository](https://github.com/globsframework/globs-bin-serialisation)
