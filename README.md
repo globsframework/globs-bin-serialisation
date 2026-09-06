@@ -53,9 +53,6 @@ Union fields also need a mapping from each target type to a stable wire index:
                              UnionType.ChoiceType.create("Company", 2)));
 ```
 
-The `@FieldNumber_(n)` and `@UnionType_({...})` Java annotations carry the same information for types built from
-annotated classes.
-
 ## Writing and reading
 
 ```java
