@@ -50,7 +50,7 @@ Releases go through `maven-release-plugin` + the `release` profile (GPG signing,
 
 Each field that should be serialised carries a field number by passing `FieldNumber.create(n)` to the `GlobTypeBuilder.declareXxxField(...)` call (the tests use the latter). **A field with no field number is silently not written and not read** — both factories skip fields whose `FieldNumber` annotation is absent.
 
-Unions (`GlobUnionField`, `GlobArrayUnionField`) additionally need `@UnionType_({@ChoiceType_(value = X.class, index = i), ...})` (or `UnionType.create(ChoiceType.create(name, i), ...)`) to map each concrete target type to a stable wire index. Type identity on the wire is that index, resolved back to a `GlobType` by *name* at reader/writer construction time.
+Unions (`GlobUnionField`, `GlobArrayUnionField`) additionally need `UnionType.create(ChoiceType.create(name, i), ...)` to map each concrete target type to a stable wire index. Type identity on the wire is that index, resolved back to a `GlobType` by *name* at reader/writer construction time.
 
 ### Wire format
 
