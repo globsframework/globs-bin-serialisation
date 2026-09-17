@@ -91,17 +91,20 @@ Measured end to end (200k globs of 4 / 20 / 40 fields, write only, `globs-genera
 
 **On core's `DefaultGlob` the write caller pays just as well**, which is what says the gain is the loop and not
 the generated Glob. `GeneratedGlobPerfTest` DEFAULT (no `globs.builder`), `-Dglobs.caller.fromGlob=org.globsframework.model.generator.AsmCallerGeneratorService`
-off → on, five forks per arm: **write 178.1k → 210.6k ops/s (+18 %)**, **writeWidest (45 fields) 360.0k → 414.4k
-(+15 %)**, **writeNested 1.06M → 1.30M (+23 %)**. The writers and their accessors are the same objects in both
-flavours; what the caller removes — one megamorphic call site per `FieldWriter` class — is there whoever built
-the Glob.
+off → on, five forks per arm (JDK 24.0.1, `-f 5`): **write 185.6k → 209.1k ops/s (+13 %)**,
+**writeWidest (45 fields) 370.4k → 416.3k (+12 %)**, **writeNested 1.11M → 1.35M (+22 %)**. The writers and
+their accessors are the same objects in both flavours; what the caller removes — one megamorphic call site
+per `FieldWriter` class — is there whoever built the Glob. (The previous run read +18 / +15 / +23 % : the
+on arms landed within 1 % of these, it is the off baseline that is faster here, so the ratio is what moved.)
 
 **The writers are `record`s, and that is a performance decision, not a style one.** The caller gives the first
 call site a constant receiver — each writer sits in a `static final` of the generated class — but once `call` is
 inlined, reading `this.fieldNumber` or `this.getAccessor` only folds to a constant if C2 *trusts* the class with
 its final instance fields, which it does for records, hidden classes and lambdas, and not for an ordinary class
 (`TrustFinalNonStaticFields` is off by default). Measured on `GeneratedGlobPerfTest.write` OBJECT, five forks
-each, A/B/A: **207.8k → 221.7k ops/s, +6.7 %** for a mechanical change. Two consequences when editing a writer:
+each, A/B/A: **207.8k → 221.7k ops/s, +6.7 %** for a mechanical change — an older run, on a build where the
+caller still went through core's erased interfaces, so read the percentage and not the absolute numbers
+against the tables above. Two consequences when editing a writer:
 the convenience constructor `(number, field)` now delegates to the canonical one, and it must **cast the
 accessor** — `GlobType.getGetAccessor` is `<T extends GlobGetAccessor> T`, so without the cast the inferred type
 makes the convenience constructor applicable to its own delegation and javac reports a *recursive constructor
@@ -112,7 +115,8 @@ generated caller holds each reader in a `static final`, but the array path reach
 through `fieldReaders[n]`, where the receiver is *not* a constant and nothing can fold. Measured with and
 without `-Dglobs.caller.toGlob`, five forks each — the caller arm gains **read 88.7k → 92.1k (+3.8 %)** and
 **readNested 583.6k → 655.4k (+12.3 %)**, while the array arm does not move (75.7k → 76.1k, 500.7k → 506.1k).
-That is the mechanism showing itself: no constant receiver, no folding, no gain.
+That is the mechanism showing itself: no constant receiver, no folding, no gain. Same caveat as above: this
+A/B predates the typed caller, so it is the two ratios that carry, not the absolute throughputs.
 
 The nested shape gains three times what the flat one does because `GlobFieldReader` also holds its child's
 `targetType` and `GlobTypeFieldReaders`, so a folded reader turns the arguments of the nested `readGlob` into
@@ -181,20 +185,31 @@ Two things to keep in mind:
   interface would be a second *interface* dispatch on the path that exists to remove one — globs-grpc measured
   that shape at 229k → 191k ops/s. On the exact final class the call is statically bound and free.
 
-Measured on `GeneratedGlobPerfTest`, OBJECT, five forks per arm, same build, caller off → on:
-**read 75.7k → 88.7k ops/s (+17 %)** and **readNested 500.7k → 583.6k (+17 %)**. The fallback path pays a
-little for the split — `read` is unchanged (75.6k → 75.7k in-window), `readNested` loses 2.6 %
-(514.2k → 500.7k), one `caller()` load and null test per glob, of which the nested shape does fifteen.
+Measured on `GeneratedGlobPerfTest`, five forks per arm (JDK 24.0.1, `-f 5`), caller off → on, ops/s:
 
-**On core's `DefaultGlob` this one is a gain only on the nested shape**, unlike the writers'. DEFAULT, five
-forks per arm, same property off → on: **readNested 591.7k → 639.8k (+8 %)** but **read 102.9k → 98.5k, −4 %**.
-The regression is not noise — A/B/A on `read` alone, five forks each, gives **101.0k / 96.3k / 101.6k**. The
-readers are flavour-independent (they write through `MutableGlob`), so what differs is what they write *into*:
-under OBJECT the four shapes are four generated Glob classes, so each reader's `set` call site is polymorphic
-and the per-type generated caller is what splits it — under DEFAULT they all land on `DefaultGlob64`/`128`,
-there is nothing to split, and the switch is left racing an array index that predicts perfectly. That reading is
-inferred from the two numbers, not measured. Note the baseline it exposes: DEFAULT reads faster than OBJECT even
-with the caller on (98.5k against 88.7k), as on the write side — generation alone costs this module.
+| | off | on | |
+| --- | --- | --- | --- |
+| `read` OBJECT | 81.2k ± 2.2k | **98.5k ± 2.2k** | **+21 %** |
+| `read` PRIMITIVE | 75.9k ± 1.0k | **96.6k ± 1.0k** | **+27 %** |
+| `read` DEFAULT | 105.3k ± 1.9k | 103.1k ± 2.6k | −2 % |
+| `readNested` OBJECT | 528.8k ± 5.0k | **724.3k ± 20.6k** | **+37 %** |
+| `readNested` PRIMITIVE | 533.0k ± 3.2k | **744.5k ± 13.9k** | **+40 %** |
+| `readNested` DEFAULT | 592.2k ± 18.3k | **709.0k ± 2.8k** | **+20 %** |
+
+The generated flavours gained on the previous measurement (+17 % flat, +17 % nested) once the caller stopped
+going through core's erased `ToGlobFunction` — no bridge per reader, no two `Void` contexts per call. Do not
+read those two sets as one series though: they were taken on different JDKs.
+
+**On core's `DefaultGlob` the flat read still does not benefit**, unlike the nested one : −2 %, and the bars
+nearly touch (103.3-107.2 against 100.5-105.8), where the previous measurement had −4 % with an A/B/A behind
+it. Call it a wash rather than a regression now, but it is still not a gain, and the explanation stands: the
+readers are flavour-independent (they write through `MutableGlob`), so what differs is what they write
+*into*. Under OBJECT the four shapes are four generated Glob classes, so each reader's `set` call site is
+polymorphic and the per-type generated caller is what splits it — under DEFAULT they all land on
+`DefaultGlob64`/`128`, there is nothing to split, and the switch is left racing an array index that predicts
+perfectly. That reading is inferred from the numbers, not measured. Note the baseline it exposes: DEFAULT
+reads as fast as OBJECT *with* the caller on (103.1k against 98.5k) and much faster without (105.3k against
+81.2k) — generation alone costs this module, as on the write side.
 
 Unlike the writers' caller, this one needs **`-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService`**
 (and globs-generate on the classpath). It is mechanically independent of `globs.builder` — though the payoff is
