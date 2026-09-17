@@ -9,11 +9,11 @@ import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.GlobFactory;
 import org.globsframework.core.model.GlobFactoryService;
 import org.globsframework.core.model.MutableGlob;
-import org.globsframework.core.model.caller.LoopFromGlobCaller;
+import org.globsframework.core.model.caller.LoopFromGlobCallerFactory;
 import org.globsframework.core.model.caller.FromGlobCallerFactory;
 import org.globsframework.core.model.caller.FromGlobCallerService;
-import org.globsframework.core.model.caller.FromGlobCaller;
 import org.globsframework.core.model.caller.CallerGlobFactory;
+import org.globsframework.serialisation.glob.type.GlobWriter;
 import org.globsframework.core.model.globaccessor.get.GlobGetAccessor;
 import org.globsframework.core.model.globaccessor.set.GlobSetAccessor;
 import org.globsframework.serialisation.model.FieldNumber;
@@ -229,12 +229,14 @@ public class GeneratedCallerWriterTest {
 
         public FromGlobCallerFactory factoryFor(GlobType type) {
             return new FromGlobCallerFactory() {
-                public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions,
-                                                             Field[] order) {
-                    FromGlobCaller<C1, C2> delegate = new LoopFromGlobCaller<>(type, functions, order);
-                    return (data, ctx1, ctx2) -> {
+                @SuppressWarnings("unchecked")
+                public <T, D> T create(String name, Functions<D> functions, Field[] order,
+                                       Class<T> tClass, Class<D> dClass, Class<?>... argument) {
+                    GlobWriter delegate = (GlobWriter) new LoopFromGlobCallerFactory(type)
+                            .create(name, functions, order, tClass, dClass, argument);
+                    return (T) (GlobWriter) (data, out) -> {
                         CALLS.incrementAndGet();
-                        delegate.call(data, ctx1, ctx2);
+                        delegate.write(data, out);
                     };
                 }
             };
@@ -243,7 +245,7 @@ public class GeneratedCallerWriterTest {
 
     /**
      * A GlobFactoryService whose factories implement CallerGlobFactory without generating anything : the
-     * globs are core's, and the caller is the looped LoopFromGlobCaller. Enough to put the writers on the
+     * globs are core's, and the caller is the looped one. Enough to put the writers on the
      * caller path, which is what this module is responsible for.
      */
     public static class CallerFactoryService implements GlobFactoryService {
@@ -271,8 +273,10 @@ public class GeneratedCallerWriterTest {
             return delegate.getGetValueAccessor(field);
         }
 
-        public <C1, C2> FromGlobCaller<C1, C2> create(String name, Functions<C1, C2> functions, Field[] order) {
-            return new LoopFromGlobCaller<>(getGlobType(), functions, order);
+        public <T, D> T create(String name, Functions<D> functions, Field[] order,
+                               Class<T> tClass, Class<D> dClass, Class<?>... argument) {
+            return new LoopFromGlobCallerFactory(getGlobType())
+                    .create(name, functions, order, tClass, dClass, argument);
         }
     }
 }

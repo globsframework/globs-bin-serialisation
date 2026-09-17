@@ -35,8 +35,8 @@ public record GlobUnionFieldWriter(int fieldNumber, GlobUnionField field, Map<Gl
         }
     }
 
-    /** The same thing driven by a FromGlobCaller : isSet / isNull / the value come from it. */
-    public void call(boolean isSet, boolean isNull, Object value, CodedOutputStream codedOutputStream, Void ignored) {
+    /** The same thing driven by a generated GlobWriter : isSet / isNull / the value come from it. */
+    public void call(boolean isSet, boolean isNull, Object value, CodedOutputStream codedOutputStream) {
         if (isNull) {
             if (isSet) {
                 codedOutputStream.writeNull(fieldNumber);
