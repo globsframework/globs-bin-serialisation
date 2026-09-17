@@ -28,8 +28,8 @@ public record DateTimeFieldReader(int fieldNumber, DateTimeField field, GlobSetD
         }
     }
 
-    /** The same read, driven by a ToGlobCaller : the CallAt has just read the tag. */
-    public void call(MutableGlob data, CodedInputStream inputStream, Void ignored, Void alsoIgnored) {
+    /** The same read, driven by a generated GlobFieldsReader : the stream has just read the tag. */
+    public void call(MutableGlob data, CodedInputStream inputStream) {
         read(data, inputStream.lastTag(), inputStream.lastWireType(), inputStream);
     }
 

@@ -150,7 +150,7 @@
         <dependency>
             <groupId>org.globsframework</groupId>
             <artifactId>globs-generate</artifactId>
-            <version>5.4.0</version>
+            <version>5.5-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -7,8 +7,8 @@ import org.globsframework.core.model.MutableGlob;
 import org.globsframework.core.utils.serialization.SerializedInput;
 import org.globsframework.core.utils.serialization.SerializedInputOutputFactory;
 import org.globsframework.core.model.caller.KeySource;
-import org.globsframework.core.model.caller.ToGlobCaller;
 import org.globsframework.serialisation.WireConstants;
+import org.globsframework.serialisation.glob.type.GlobFieldsReader;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
 import org.jspecify.annotations.Nullable;
@@ -276,9 +276,9 @@ public final class CodedInputStream implements KeySource {
         MutableGlob data = globInstantiator.newGlob(globType);
         // one test per glob, not per field : with a caller the whole loop is the generated switch, without
         // one it is the array below, which is what this reads when -Dglobs.caller.toGlob is unset
-        ToGlobCaller<CodedInputStream, Void, Void> caller = globTypeFieldReaders.caller();
+        GlobFieldsReader caller = globTypeFieldReaders.caller();
         if (caller != null) {
-            caller.call(this, data, this, null, null);
+            caller.read(data, this);
             return data;
         }
         while (true) {

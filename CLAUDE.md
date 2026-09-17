@@ -140,16 +140,19 @@ whole sub-tree hangs. Do not "fix" this by moving `initCaller` into the construc
 ### Reading through a generated caller
 
 The same trade on the other side, and it is the *write* half of core's SPI that serves it — a parser filling a
-`MutableGlob` is exactly what `model/caller` describes. `FieldReader` therefore **extends
-`ToGlobFunction<CodedInputStream, Void, Void>`**: on top of `read(data, tag, wireType, in)` every reader
-carries `call(data, in, null, null)`, the same read driven by a `ToGlobCaller`.
+`MutableGlob` is exactly what `model/caller` describes. The caller is generated over **two interfaces of
+ours**: `GlobFieldsReader` (`void read(MutableGlob, CodedInputStream)`), which the emitted class implements,
+and `FieldReader`, which it calls — so on top of `read(data, tag, wireType, in)` every reader carries
+`call(data, in)`, the same read driven by that generated loop. Core names only `KeySource` here; there is no
+generic `ToGlobCaller`/`ToGlobFunction` pair any more, and with it went the two `Void` contexts that were
+always null and the bridge method each reader needed behind them.
 
 The pieces map one to one onto the read loop that was already there:
 
 | the SPI wants | here |
 | --- | --- |
 | `KeySource.nextKey()` | `CodedInputStream` itself: reads the tag, keeps it in `lastTag`, answers the field number — or `END_OF_GLOB` (-1, and a field number is never negative) when the wire type is `END_GLOB` |
-| the key of each `ToGlobFunction` | the proto field number, i.e. the index of `GlobTypeFieldReaders`' array |
+| the key of each `FieldReader` | the proto field number, i.e. the index of `GlobTypeFieldReaders`' array |
 | the fallback | `UnknownFieldReader.INSTANCE`, which skips — the same answer the array gives for a number it has no reader for |
 | `endLoop` | `END_OF_GLOB` |
 
@@ -169,8 +172,9 @@ varies per run is accepted and silently gives up the identity it was asked for.
 
 Two things to keep in mind:
 
-- **the tag is read back from the stream, not passed.** `ToGlobFunction` takes objects, so an `int`
-  argument would be boxed; instead `nextKey` leaves the tag in `lastTag` and each `call` reads
+- **the tag is read back from the stream, not passed.** The caller's arguments are fixed for the whole pass,
+  where the tag changes every turn, so there is nowhere to pass it; instead `nextKey` leaves the tag in
+  `lastTag` and each `call` reads
   `lastTag()` / `lastWireType()` before doing anything else. That "before anything else" is load-bearing for
   nested Globs: descending into a sub-glob overwrites it.
 - **each reader writes its own one-line `call`**, delegating to its own `read`. A `default call` on the
