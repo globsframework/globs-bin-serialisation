@@ -10,7 +10,8 @@ public class DefaultGlobTypeFieldWritersManager implements GlobTypeFieldWritersM
     private final Map<GlobType, GlobTypeFieldWriters> preInit;
     private final GlobTypeFieldWritersFactory globTypeFieldWritersFactory;
 
-    public DefaultGlobTypeFieldWritersManager(Map<GlobType, GlobTypeFieldWriters> preInit, GlobTypeFieldWritersFactory globTypeFieldWritersFactory) {
+    public DefaultGlobTypeFieldWritersManager(Map<GlobType, GlobTypeFieldWriters> preInit,
+                                              GlobTypeFieldWritersFactory globTypeFieldWritersFactory) {
         this.preInit = preInit;
         this.globTypeFieldWritersFactory = globTypeFieldWritersFactory;
     }

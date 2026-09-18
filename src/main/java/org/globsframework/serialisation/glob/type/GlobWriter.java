@@ -6,7 +6,7 @@ import org.globsframework.serialisation.stream.CodedOutputStream;
 
 /**
  * The write pass over one GlobType, as globs-generate emits it : the fields of the Glob read straight out of
- * its own class and handed to the writers, unrolled, instead of the loop {@link GlobTypeFieldWriters} walks.
+ * its own class and handed to the writers, unrolled, instead of the loop {@link CallerGlobTypeFieldWriters} walks.
  * <p>
  * This is the interface the generated class implements, and {@link FieldWriter} is what it calls — both of
  * them ours, so the stream travels as itself. Core only fixes the head of each method : the Glob here,

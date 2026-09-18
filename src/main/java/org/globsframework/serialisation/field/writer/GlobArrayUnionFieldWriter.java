@@ -75,7 +75,8 @@ public record GlobArrayUnionFieldWriter(int fieldNumber, GlobArrayUnionField fie
             for (GlobType targetType : targetTypes) {
                 if (targetType.getName().equals(mappings[i].get(UnionType.ChoiceType.typeName))) {
                     typeMap.put(targetType,
-                            new GlobUnionFieldWriter.IndiceWithWriter(mappings[i].get(UnionType.ChoiceType.index), fieldWritersFactory.create(targetType)));
+                            new GlobUnionFieldWriter.IndiceWithWriter(mappings[i].get(UnionType.ChoiceType.index),
+                                    fieldWritersFactory.create(targetType)));
                     found = true;
                     break;
                 }

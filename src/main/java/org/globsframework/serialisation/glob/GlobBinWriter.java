@@ -75,7 +75,11 @@ public class GlobBinWriter implements BinWriter {
 
         @Override
         public void write(@Nullable Glob glob) {
-            globTypeFieldWriters.write(codedOutputStream, glob);
+            if (glob == null) {
+                codedOutputStream.writeNull();
+            } else {
+                globTypeFieldWriters.write(codedOutputStream, glob);
+            }
         }
 
         @Override
@@ -95,7 +99,6 @@ public class GlobBinWriter implements BinWriter {
                     }
                 }
             }
-
         }
     }
 }
