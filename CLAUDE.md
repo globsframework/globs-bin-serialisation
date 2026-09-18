@@ -62,12 +62,12 @@ Backward compatibility rests on two behaviours: an unknown field number resolves
 
 The central idea is that serialisation logic for a `GlobType` is computed **once** and cached, not re-derived per glob:
 
-- `GlobTypeFieldWriters` holds a `FieldWriter[]` indexed by *field index* (dense, one entry per field of the type; fields without a field number get `NullFieldWriter`). Writing iterates the array in order — unless the type's factory can do better, see below.
+- `GlobTypeFieldWriters` is an **interface**, and which of its two shapes a type gets is decided once, by `InitializedGlobTypeFieldWriterFactory.create`, not per glob: `CallerGlobTypeFieldWriters` when core hands back a generated caller, `ArraysGlobTypeFieldWriters` — a `FieldWriter[]` indexed by *field index* (dense, one entry per field; fields without a field number get `NullFieldWriter`), walked in order — when it does not. The caller shape keeps that same array as its fallback, see below. `DefaultGlobTypeFieldWritersFactory.Delegate` is a third, transitional implementation, see the factory bullet.
 - `GlobTypeFieldReaders` holds a `FieldReader[]` indexed by *field number* (sized to the largest field number, gaps filled with `UnknownFieldReader`). Reading looks up by the number decoded from the tag.
 
 The three-layer structure repeats symmetrically for readers and writers:
 
-- `*Factory` (`DefaultGlobTypeFieldReadersFactory` / `...WritersFactory`) builds the plan for one `GlobType`. It inserts the (still empty) container into the shared `containers` map *before* visiting fields, which is what makes recursive/self-referencing types work — `Proto1.globField` targeting `Proto1` resolves to the in-progress instance instead of recursing forever. Preserve that ordering when editing.
+- `*Factory` (`DefaultGlobTypeFieldReadersFactory` / `...WritersFactory`) builds the plan for one `GlobType`, and the two sides solve recursion differently now. The **readers** factory inserts the (still empty) container into the shared `containers` map *before* visiting fields, which is what makes recursive/self-referencing types work — `Proto1.globField` targeting `Proto1` resolves to the in-progress instance instead of recursing forever; preserve that ordering when editing. The **writers** factory cannot, since the shape of the plan is only known once the fields are visited: it keeps an `onGoing` set, hands a mutable `Delegate` to the fields that re-enter a type being built, and points every `Delegate` at the finished plan before returning. So a self-recursive type descends through one extra hop, and an acyclic one never sees a `Delegate` at all.
 - `*Manager` (`DefaultGlobTypeFieldReadersManager` / `...WritersManager`) is the cache lookup (`getOrCreate`). `Builder.init().add(type)...build()` pre-registers types so no plan is built on the hot path.
 - `BinReaderFactory` / `BinWriterFactory` are the entry points; `create()` builds a default manager, `create(manager)` takes a pre-built one.
 
@@ -77,15 +77,15 @@ The three-layer structure repeats symmetrically for readers and writers:
 
 The `FieldWriter[]` loop is one call site for every `FieldWriter` class in the process, and each writer's `getAccessor.get(data)` is another: both megamorphic, neither inlined. Core's `model/caller/` SPI exists to remove exactly that, so `FieldWriter` has a second entry point of its own, **`call(isSet, isNull, value, out)`**, handed the value instead of fetching it. The caller is generated over two interfaces of ours — `GlobWriter`, which the emitted class implements, and `FieldWriter` — so the stream travels as itself; core fixes only the head of each method (the Glob there, `isSet, isNull, value` here), and that `Object` value is the one argument whose type changes from one field to the next. It used to come from core's `FromGlobFunction`, whose two contexts were `Object` and one of which was always `Void` here.
 
-`GlobTypeFieldWriters.initCaller(type)` then asks **core** — `FromGlobCallerFactory.generatedCallerFor("binser.write", type, ...)` — for a `GlobWriter` over those same writers, rather than testing `CallerGlobFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `FromGlobCallerService` of `-Dglobs.caller.fromGlob` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
+`InitializedGlobTypeFieldWriterFactory.create(type, fieldWriters)` then asks **core** — `FromGlobCallerFactory.generatedCallerFor("binser.write", type, ...)` — for a `GlobWriter` over those same writers, rather than testing `CallerGlobFactory` itself. That is what makes both ways of getting one reach this module: the type's own factory when `-Dglobs.builder` generates the Globs, and the `FromGlobCallerService` of `-Dglobs.caller.fromGlob` when they are core's `DefaultGlob`. Either way the caller is a generated class holding each writer in a `static final` field, so the write of a field becomes a monomorphic, inlinable call.
 
 `generatedCallerFor` and not `callerFor`: null means "nobody can generate this", and the loop below is a *better* answer than the looped caller `callerFor` would hand back — that one reads through `Glob.getValue` rather than the typed accessor each writer holds, and calls the writers of fields that have no field number, which `NullFieldWriter` makes free here. Measured, it is 10-20 % behind the loop; and since the caller's shape became ours it is a reflective `Proxy` on top of that, which only widens the gap.
 
 Three things to respect:
 
 - **`call` and `write` must produce the same bytes.** Only null-vs-unset drives the choice between writing nothing, a NULL tag and the value, and it is the same test on both paths (`isNull` from the caller means "`getValue` answers null"). `GeneratedCallerWriterTest` writes the same data through both and compares the bytes; break one `call` and both of its tests fail.
-- **`initCaller` runs at the end of `DefaultGlobTypeFieldWritersFactory.create`**, not in the constructor: the factory publishes the (empty) `GlobTypeFieldWriters` into `containers` before visiting the fields so recursive types resolve, so the `FieldWriter[]` is only complete at that point.
-- **the caller is guarded by `glob.getClass() == generatedGlobClass`** (captured from `type.instantiate()`). A generated caller reads the fields of its own Glob class directly, so a `MutableGlob` from a custom `GlobInstantiator` has to take the loop rather than a `ClassCastException`. One reference compare per glob, and `null` when there is no caller, which is why there is no second test.
+- **the caller is asked for at the end of `DefaultGlobTypeFieldWritersFactory.create`**, once the `FieldWriter[]` is complete — it captures those writers, so there is nothing to ask before that point. This is also what forces the `Delegate` above: the plan of a type cannot exist until its fields have been visited.
+- **the caller is guarded by `glob.getClass() == generatedGlobClass`** (captured from `type.instantiate()`), in `CallerGlobTypeFieldWriters`. A generated caller reads the fields of its own Glob class directly, so a `MutableGlob` from a custom `GlobInstantiator` falls back to the `FieldWriter[]` loop rather than a `ClassCastException`. One reference compare per glob. `ArraysGlobTypeFieldWriters`, which has no such class to check, verifies the `GlobType` with `FieldCheck.check` instead — that costs 3-4 % (measured with `-Dglobsframework.field.no.check=true`) and the loop shape can afford it.
 
 Measured end to end (200k globs of 4 / 20 / 40 fields, write only, `globs-generate` object flavour), caller off → on: **16.9 → 19.8**, **2.81 → 4.46**, **1.15 → 2.20 M globs/s** (+17 % / +59 % / +91 %). Note the baseline that matters: with generated globs and *no* caller, 40 fields writes at 1.15 M globs/s against **1.95** for core's plain `DefaultGlob` — generation alone makes this module slower, because one accessor class per field is more receivers at the same megamorphic call site. The caller is what makes generation pay here.
 
@@ -108,7 +108,7 @@ against the tables above. Two consequences when editing a writer:
 the convenience constructor `(number, field)` now delegates to the canonical one, and it must **cast the
 accessor** — `GlobType.getGetAccessor` is `<T extends GlobGetAccessor> T`, so without the cast the inferred type
 makes the convenience constructor applicable to its own delegation and javac reports a *recursive constructor
-invocation*. `NullFieldWriter` stays a plain class: a stateless singleton has nothing to fold.
+invocation*. `NullFieldWriter` stays a plain class: a stateless singleton has nothing to fold. **`CallerGlobTypeFieldWriters` is a plain class on purpose**, and for the opposite reason — there, folding the field is what costs; see the nested paragraph below before turning it back into a record.
 
 **The readers are records for the same reason**, and there the experiment comes with its own control: the
 generated caller holds each reader in a `static final`, but the array path reaches the very same objects
@@ -126,11 +126,10 @@ inlining boundary, and only the walk to it becomes free. `UnknownFieldReader` st
 
 **The nested case looks like the same opportunity and is not — it was tried and it loses.**
 `GlobFieldWriter` / `GlobArrayFieldWriter` / the two union writers hold a `GlobTypeFieldWriters` and delegate a
-whole sub-Glob to it, a *call* through a field, and `GlobTypeFieldWriters.caller` is **non-final** (it cannot
-be: `initCaller` runs after the array is filled, itself after the instance is published so recursive types
-resolve), so that call is never folded. The prototype that removes the obstacle — a `DirectGlobFieldWriter`
-record holding the child's caller and Glob class directly, usable whenever the child was complete when the
-writer was built, i.e. no cycle through that field — measures **1.76M → 1.54M ops/s on
+whole sub-Glob to it, a *call* through a field, and `CallerGlobTypeFieldWriters.caller` is **non-final** — on
+purpose, and no longer by accident, see the run below — so that call is never folded. The prototype that
+removes the obstacle — a `DirectGlobFieldWriter` record holding the child's caller and Glob class directly,
+usable whenever the child was complete when the writer was built, i.e. no cycle through that field — measures **1.76M → 1.54M ops/s on
 `GeneratedGlobPerfTest.writeNested`, −12 %**, and −0.7 % on `write`. It was deleted rather than kept.
 
 The reason is in `-XX:+PrintInlining`: with the descent folded, C2 inlines the child's whole generated
@@ -139,7 +138,35 @@ Globs it runs into **`NodeCountInliningCutoff`** and `size > DesiredMethodLimit`
 levels end up compiled *worse* than when each type's `call` was its own unit. The unfoldable field is acting as
 an inlining barrier, and here that barrier is worth more than the dispatch it costs. Which also says the leaf
 gain (+6.7 %) and the nested gain are not the same trade at all: fold what is a leaf, keep a boundary where a
-whole sub-tree hangs. Do not "fix" this by moving `initCaller` into the constructor.
+whole sub-tree hangs.
+
+**The same trap, reached from the other side** (JDK 27-ea, `-f 3` and `-f 4`, so read these against each other and
+not against the JDK 24 tables above). Splitting the plan per shape made `CallerGlobTypeFieldWriters` a `record`,
+which is all it takes: `caller` became a final field of a class C2 trusts, the fold that `DirectGlobFieldWriter`
+had to be written to obtain happened on its own, and the loss came back in the same place.
+
+| arm | before the split | as a `record` | with `caller` non-final |
+| --- | --- | --- | --- |
+| `writeNested` OBJECT | 1.389M | 1.254M (−10 %) | 1.388M (−0.1 %) |
+| `writeNested` PRIMITIVE | 1.343M | 1.181M (−12 %) | 1.349M (+0.5 %) |
+| nested-only shape, OBJECT | 1.976M | 1.651M (−16 %) | 1.960M (−0.8 %) |
+| `write`, all three flavours | — | ±1 % | +1.3 to +3.4 % |
+
+The nested-only shape was a throwaway copy of `GeneratedGlobPerfTest` registering *only* the acyclic tree, so
+no `Delegate` exists and the descent has a single receiver: the loss is larger there, which is how the
+`Delegate` was ruled out as its cause. `FieldCheck` on the caller shape was ruled out the same way (2 points at most; replacing it
+with the class guard is worth +1 to +8 %, and no more).
+
+`-prof perfnorm` on that shape says what the fold does, per op: **instructions 10,342 → 11,667 (+13 %)**,
+**cycles 2,466 → 2,926**, **L1-icache-loads 107 → 593**, **L1-icache-load-misses 0.0 → 7.0**,
+**stalled-cycles-frontend 21 → 104**, IPC 4.2 → 4.0. The inlined caller bodies stop fitting, and the front end
+waits. Note what this *corrects* in the paragraph above: the `NodeCountInliningCutoff` lines in
+`-XX:+PrintInlining` are a symptom, not the binding constraint — raising the product flag behind them
+(`-XX:LiveNodeCountInliningCutoff=120000 -XX:MaxNodeLimit=200000 -XX:NodeLimitFudgeFactor=8000`) leaves both
+versions within ±1.4 % of themselves and the gap untouched.
+
+So: do not turn `CallerGlobTypeFieldWriters` into a record, do not make `caller` final, and do not build the
+caller in the constructor of something the parent writers hold — the three are the same mistake.
 
 ### Reading through a generated caller
 
