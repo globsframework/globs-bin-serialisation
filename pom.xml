@@ -138,7 +138,7 @@
         <dependency>
             <groupId>org.globsframework</groupId>
             <artifactId>globs</artifactId>
-            <version>5.13-SNAPSHOT</version>
+            <version>5.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.jspecify</groupId>
@@ -150,7 +150,7 @@
         <dependency>
             <groupId>org.globsframework</groupId>
             <artifactId>globs-generate</artifactId>
-            <version>5.5-SNAPSHOT</version>
+            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
