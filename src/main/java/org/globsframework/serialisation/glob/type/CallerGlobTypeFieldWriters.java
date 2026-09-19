@@ -3,13 +3,18 @@ package org.globsframework.serialisation.glob.type;
 import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.core.model.Glob;
 import org.globsframework.core.model.utils.FieldCheck;
-import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.stream.CodedOutputStream;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * The write pass of one GlobType through the caller globs-generate emitted for it, with the loop over the
- * FieldWriter[] as the fallback for a Glob that is not of the class that caller reads.
+ * The write pass of one GlobType through the caller globs-generate emitted for it.
+ * <p>
+ * What is checked here is the GlobType, with the same FieldCheck.check as the FieldWriter[] loop next door,
+ * and not the class of the Glob : the caller opens with a CHECKCAST to the Glob class it was generated over,
+ * and a GlobType resolves its GlobFactory once, into a final field, so every Glob that type instantiates has
+ * that one class. A Glob of the right type built by something else -- a custom GlobInstantiator, a
+ * hand-rolled MutableGlob -- passes the check and fails that cast; there is deliberately no class guard and
+ * no loop behind it to catch it.
  * <p>
  * <b>Not a record, and {@code caller} is deliberately not final.</b> A final field lets C2 fold it to a
  * constant once this writer is inlined into its parent, devirtualize the generated GlobWriter behind it and

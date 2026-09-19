@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `org.globsframework:globs-bin-serialisation` — binary serialisation of `Glob` objects in a TLV (Type-Length-Value) format inspired by Protocol Buffers. Unlike the default serialisation shipped in the `globs` core library (which writes values in field-declaration order and is therefore *not* backward compatible), this format tags every value with a field number so readers can skip unknown fields and tolerate schema evolution.
 
-Single Maven module, Java 21 (`maven-compiler-plugin` `source`/`target` 21 — note the GitHub workflows still set up JDK 17, so CI and the POM disagree). Depends on `org.globsframework:globs` (the core Glob metamodel, **5.11-SNAPSHOT** — the writers need `model/caller/`, so this module now tracks a core snapshot: `mvn install` in `globsframework/` before building it) and `jspecify`.
+Single Maven module, Java 21 (`maven-compiler-plugin` `source`/`target` 21 — note the GitHub workflows still set up JDK 17, so CI and the POM disagree). Depends on `org.globsframework:globs` (the core Glob metamodel, **5.13.0** — the writers need `model/caller/`, which that release carries, so nothing has to be installed from `globsframework/` first) and `jspecify`.
 
 ## Commands
 
@@ -18,10 +18,10 @@ mvn package                         # build the jar
 mvn -s settings.xml -B package      # what CI runs (settings.xml pulls the GitHub Packages repo)
 ```
 
-Tests are a mix of JUnit 3 (`BinReaderTest extends TestCase`) and JUnit 4 (`PerfReadWriteTest` with `@Test`); surefire auto-detects the JUnit 4 provider and runs both. `PerfReadWriteTest` is a benchmark that runs as part of `mvn test` and prints throughput to stdout.
+Tests are a mix of JUnit 3 (`BinReaderTest extends TestCase`) and JUnit 4 (`PerfReadWriteTest`, `DateTimeEncodeTest`, `GeneratedCallerWriterTest`, all with `@Test`); surefire auto-detects the JUnit 4 provider and runs both. `PerfReadWriteTest` is a benchmark that runs as part of `mvn test` and prints throughput to stdout.
 
 `GeneratedGlobPerfTest` is a JMH benchmark (test-scoped `jmh-core` + the annotation processor in the compiler
-plugin, and `globs-generate` 5.3-SNAPSHOT, which needs an `mvn install` there). It writes four *different*
+plugin, and `globs-generate` 5.5.0). It writes four *different*
 GlobTypes — a single type makes the loop's call sites monomorphic and says nothing — each carrying a nested Glob
 and a nested Glob array of its own type, under core's `DefaultGlob` and both ASM flavours (`GlobFlavour`, a
 `@Param`, so JMH forks one JVM per flavour). DEFAULT is the control for `globs.builder`, *not* for the caller:
@@ -48,7 +48,7 @@ Releases go through `maven-release-plugin` + the `release` profile (GPG signing,
 
 ### Field numbers drive everything
 
-Each field that should be serialised carries a field number by passing `FieldNumber.create(n)` to the `GlobTypeBuilder.declareXxxField(...)` call (the tests use the latter). **A field with no field number is silently not written and not read** — both factories skip fields whose `FieldNumber` annotation is absent.
+Each field that should be serialised carries a field number by passing `FieldNumber.create(n)` to the `GlobTypeBuilder.declareXxxField(...)` call. **A field with no field number is silently not written and not read** — both factories skip fields whose `FieldNumber` annotation is absent.
 
 Unions (`GlobUnionField`, `GlobArrayUnionField`) additionally need `UnionType.create(ChoiceType.create(name, i), ...)` to map each concrete target type to a stable wire index. Type identity on the wire is that index, resolved back to a `GlobType` by *name* at reader/writer construction time.
 
@@ -62,7 +62,7 @@ Backward compatibility rests on two behaviours: an unknown field number resolves
 
 The central idea is that serialisation logic for a `GlobType` is computed **once** and cached, not re-derived per glob:
 
-- `GlobTypeFieldWriters` is an **interface**, and which of its two shapes a type gets is decided once, by `InitializedGlobTypeFieldWriterFactory.create`, not per glob: `CallerGlobTypeFieldWriters` when core hands back a generated caller, `ArraysGlobTypeFieldWriters` — a `FieldWriter[]` indexed by *field index* (dense, one entry per field; fields without a field number get `NullFieldWriter`), walked in order — when it does not. The caller shape keeps that same array as its fallback, see below. `DefaultGlobTypeFieldWritersFactory.Delegate` is a third, transitional implementation, see the factory bullet.
+- `GlobTypeFieldWriters` is an **interface**, and which of its two shapes a type gets is decided once, by `InitializedGlobTypeFieldWriterFactory.create`, not per glob: `CallerGlobTypeFieldWriters` when core hands back a generated caller, `ArraysGlobTypeFieldWriters` — a `FieldWriter[]` indexed by *field index* (dense, one entry per field; fields without a field number get `NullFieldWriter`), walked in order — when it does not. The caller shape holds the caller alone: the array is captured by the generated class and not kept behind it. `DefaultGlobTypeFieldWritersFactory.Delegate` is a third, transitional implementation, see the factory bullet.
 - `GlobTypeFieldReaders` holds a `FieldReader[]` indexed by *field number* (sized to the largest field number, gaps filled with `UnknownFieldReader`). Reading looks up by the number decoded from the tag.
 
 The three-layer structure repeats symmetrically for readers and writers:
@@ -85,7 +85,19 @@ Three things to respect:
 
 - **`call` and `write` must produce the same bytes.** Only null-vs-unset drives the choice between writing nothing, a NULL tag and the value, and it is the same test on both paths (`isNull` from the caller means "`getValue` answers null"). `GeneratedCallerWriterTest` writes the same data through both and compares the bytes; break one `call` and both of its tests fail.
 - **the caller is asked for at the end of `DefaultGlobTypeFieldWritersFactory.create`**, once the `FieldWriter[]` is complete — it captures those writers, so there is nothing to ask before that point. This is also what forces the `Delegate` above: the plan of a type cannot exist until its fields have been visited.
-- **the caller is guarded by `glob.getClass() == generatedGlobClass`** (captured from `type.instantiate()`), in `CallerGlobTypeFieldWriters`. A generated caller reads the fields of its own Glob class directly, so anything else falls back to the `FieldWriter[]` loop rather than a `ClassCastException`. **A `GlobType`'s instantiator cannot be changed**: `DefaultGlobType` resolves its `GlobFactory` once, in its constructor, from `GlobFactoryService` — itself fixed by `-Dglobs.builder`, read once — and holds it in a `final` field with no setter. So the concrete class of a Glob is the same for every Glob that type instantiates, the captured `generatedGlobClass` stays valid for the life of the type, and the guard is one reference compare that a Glob coming from its own type never fails. What it is there for is the Globs that do *not*: `BinReaderFactory.create(globInstantiator, …)` lets a caller allocate the `MutableGlob`s itself (`CodedInputStream` calls `globInstantiator.newGlob(type)`), and so does any code that builds a Glob by hand. `ArraysGlobTypeFieldWriters`, which has no such class to check, verifies the `GlobType` with `FieldCheck.check` instead — that costs 3-4 % (measured with `-Dglobsframework.field.no.check=true`) and the loop shape can afford it.
+- **both shapes check the `GlobType`, and neither checks the Glob's class.** `write` opens with
+  `FieldCheck.check(type, glob)` in `CallerGlobTypeFieldWriters` exactly as in `ArraysGlobTypeFieldWriters`;
+  it costs 3-4 % (measured with `-Dglobsframework.field.no.check=true`) and both shapes can afford it. The
+  caller shape has no `FieldWriter[]` to fall back to, and needs none: a generated caller opens with a
+  `CHECKCAST` to the Glob class it was generated over (`AsmCallerGenerator`, and the exact
+  `DefaultGlob32/64/128` when the Globs are core's), and **a `GlobType`'s instantiator cannot be changed** —
+  `DefaultGlobType` resolves its `GlobFactory` once, in its constructor, from `GlobFactoryService` — itself
+  fixed by `-Dglobs.builder`, read once — into a `final` field with no setter. So every Glob a type
+  instantiates has that one class and the cast never fails for it. What the type check does *not* cover is a
+  Glob of the right type built by something else — a custom `GlobInstantiator` handed to
+  `BinReaderFactory.create(globInstantiator, …)`, or a hand-rolled `MutableGlob`: `FieldCheck` passes and the
+  cast then throws. Supporting that would mean adding a class guard with the loop behind it, which is
+  deliberately not what this does.
 
 Measured end to end (200k globs of 4 / 20 / 40 fields, write only, `globs-generate` object flavour), caller off → on: **16.9 → 19.8**, **2.81 → 4.46**, **1.15 → 2.20 M globs/s** (+17 % / +59 % / +91 %). Note the baseline that matters: with generated globs and *no* caller, 40 fields writes at 1.15 M globs/s against **1.95** for core's plain `DefaultGlob` — generation alone makes this module slower, because one accessor class per field is more receivers at the same megamorphic call site. The caller is what makes generation pay here.
 
@@ -155,7 +167,7 @@ had to be written to obtain happened on its own, and the loss came back in the s
 The nested-only shape was a throwaway copy of `GeneratedGlobPerfTest` registering *only* the acyclic tree, so
 no `Delegate` exists and the descent has a single receiver: the loss is larger there, which is how the
 `Delegate` was ruled out as its cause. `FieldCheck` on the caller shape was ruled out the same way (2 points at most; replacing it
-with the class guard is worth +1 to +8 %, and no more).
+with a bare class compare measured +1 to +8 %, and no more — which is why the type check stayed).
 
 `-prof perfnorm` on that shape says what the fold does, per op: **instructions 10,342 → 11,667 (+13 %)**,
 **cycles 2,466 → 2,926**, **L1-icache-loads 107 → 593**, **L1-icache-load-misses 0.0 → 7.0**,
@@ -241,8 +253,8 @@ reads as fast as OBJECT *with* the caller on (103.1k against 98.5k) and much fas
 Unlike the writers' caller, this one needs **`-Dglobs.caller.toGlob=org.globsframework.model.generator.AsmCallerWriteGeneratorService`**
 (and globs-generate on the classpath). It is mechanically independent of `globs.builder` — though the payoff is
 not, see just above: nothing in the emitted switch reads a Glob's layout, the readers write through
-`MutableGlob`, so there is no guard on the Glob's class here — where `GlobTypeFieldWriters` needs
-`glob.getClass() == generatedGlobClass`.
+`MutableGlob`, so the Glob's class is nothing to this caller — where the write caller reads the fields of
+the class it was generated over, and casts to it.
 
 ### Reading and writing
 
@@ -257,7 +269,7 @@ Glob g = r.read(Proto1.TYPE);           // the type is supplied by the caller, n
 
 The `GlobType` is **not** written to the stream — the reader must be told which type to expect. Reading with `type == null` consumes and discards a glob. `BinReaderFactory.create(globInstantiator, ...)` lets callers override how `MutableGlob` instances are allocated.
 
-Note: the README's example is out of date (it shows `create(outputStream)` and `createGlobBinReader(GlobTypeResolver...)`); the current API is `createFromStream(...)` and `read(GlobType)`. `BinReaderTest` is the authoritative usage reference — it round-trips every field kind, including reading into a type where the field is absent (forward/backward compatibility) and explicit-null handling.
+The README's examples match this API. `BinReaderTest` is the authoritative usage reference — it round-trips every field kind, including reading into a type where the field is absent (forward/backward compatibility) and explicit-null handling.
 
 ### Null vs unset
 
