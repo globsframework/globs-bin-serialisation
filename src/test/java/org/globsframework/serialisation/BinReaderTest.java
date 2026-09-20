@@ -288,6 +288,62 @@ public class BinReaderTest extends TestCase {
         check(withNull, withNull);
     }
 
+    /** a null element inside a plain glob array : the writer must put a NULL tag where the sub-glob would be */
+    public void testGlobArrayWithNullElement() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayField, new Glob[]{
+                        null,
+                        Proto1.TYPE.instantiate()
+                                .set(Proto1.intField, 2),
+                        null
+                });
+        check(p, p);
+
+        // the same bytes read by a type that ignores the field : the null elements have to be skipped too
+        final GlobType globType = createEmptyProto1Type();
+        check(p, globType.instantiate());
+
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        BinWriter binWriter = BinWriterFactory.create().createFromStream(byteArrayOutputStream);
+        binWriter.write(p);
+        binWriter.write(Proto1.TYPE.instantiate().set(Proto1.intField, 7));
+        BinReader binReader = BinReaderFactory.create()
+                .createFromStream(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+        Glob r = binReader.read(Proto1.TYPE);
+        assertNotNull(r);
+        final Glob[] actual = r.get(Proto1.globArrayField);
+        Assert.assertEquals(3, actual.length);
+        Assert.assertNull(actual[0]);
+        Assert.assertNotNull(actual[1]);
+        Assert.assertEquals(2, actual[1].get(Proto1.intField).intValue());
+        Assert.assertNull(actual[2]);
+        // the stream is left exactly at the end of the first glob
+        final Glob next = binReader.read(Proto1.TYPE);
+        assertNotNull(next);
+        Assert.assertEquals(7, next.get(Proto1.intField).intValue());
+    }
+
+    /** the same bytes discarded glob by glob : read(null) skips the array, null elements included */
+    public void testSkipGlobArrayWithNullElement() throws IOException {
+        Glob p = Proto1.TYPE.instantiate()
+                .set(Proto1.globArrayField, new Glob[]{
+                        null,
+                        Proto1.TYPE.instantiate()
+                                .set(Proto1.intField, 2),
+                        null
+                });
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        BinWriter binWriter = BinWriterFactory.create().createFromStream(byteArrayOutputStream);
+        binWriter.write(p);
+        binWriter.write(Proto1.TYPE.instantiate().set(Proto1.intField, 7));
+        BinReader binReader = BinReaderFactory.create()
+                .createFromStream(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+        Assert.assertNull(binReader.read(null));
+        final Glob next = binReader.read(Proto1.TYPE);
+        assertNotNull(next);
+        Assert.assertEquals(7, next.get(Proto1.intField).intValue());
+    }
+
     public void testGlobUnion() throws IOException {
         Glob p = Proto1.TYPE.instantiate()
                 .set(Proto1.globUnionField, Proto1.TYPE.instantiate()

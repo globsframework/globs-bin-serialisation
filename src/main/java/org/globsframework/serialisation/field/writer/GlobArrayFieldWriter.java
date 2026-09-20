@@ -7,7 +7,10 @@ import org.globsframework.serialisation.field.FieldWriter;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldWritersFactory;
 import org.globsframework.serialisation.stream.CodedOutputStream;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public record GlobArrayFieldWriter(int fieldNumber, GlobGetGlobArrayAccessor getAccessor, GlobTypeFieldWriters globTypeFieldWriters) implements FieldWriter {
 
     public GlobArrayFieldWriter(int fieldNumber, GlobArrayField<?> field, GlobTypeFieldWritersFactory fieldWritersFactory) {
@@ -34,14 +37,18 @@ public record GlobArrayFieldWriter(int fieldNumber, GlobGetGlobArrayAccessor get
                 codedOutputStream.writeNull(fieldNumber);
             }
         } else {
-            writeValue(codedOutputStream, (Glob[]) value);
+            writeValue(codedOutputStream, ( @Nullable Glob[]) value);
         }
     }
 
-    private void writeValue(CodedOutputStream codedOutputStream, Glob[] globs) {
+    private void writeValue(CodedOutputStream codedOutputStream, @Nullable Glob[] globs) {
         codedOutputStream.writeGlobArray(fieldNumber, globs.length);
         for (Glob glob : globs) {
-            globTypeFieldWriters.write(codedOutputStream, glob);
+            if (glob == null) {
+                codedOutputStream.writeNull();
+            }else {
+                globTypeFieldWriters.write(codedOutputStream, glob);
+            }
         }
     }
 

@@ -10,6 +10,8 @@ import org.globsframework.serialisation.glob.type.GlobTypeFieldWriters;
 import org.globsframework.serialisation.glob.type.InitializedGlobTypeFieldWriterFactory;
 import org.globsframework.serialisation.model.FieldNumber;
 import org.globsframework.serialisation.stream.CodedOutputStream;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -56,12 +58,13 @@ public class DefaultGlobTypeFieldWritersFactory implements GlobTypeFieldWritersF
         return globTypeFieldWriters;
     }
 
+    @NullMarked
     static final class Delegate implements GlobTypeFieldWriters {
-        private GlobTypeFieldWriters globTypeFieldWriters;
+        private @Nullable GlobTypeFieldWriters globTypeFieldWriters;
 
         @Override
         public void write(CodedOutputStream codedOutputStream, Glob glob) {
-            globTypeFieldWriters.write(codedOutputStream, glob);
+            globTypeFieldWriters.write(codedOutputStream, glob); // ok
         }
 
         public void set(GlobTypeFieldWriters globTypeFieldWriters) {

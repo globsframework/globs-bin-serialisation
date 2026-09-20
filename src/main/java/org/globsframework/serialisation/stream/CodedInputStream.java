@@ -139,7 +139,7 @@ public final class CodedInputStream implements KeySource {
             case WireConstants.Type.GLOB_ARRAY: {
                 int size = readInt();
                 for (int index = 0; index < size; index++) {
-                    skipGlobField();
+                    skipGlobElement();
                 }
                 break;
             }
@@ -155,6 +155,20 @@ public final class CodedInputStream implements KeySource {
             default:
                 throw new RuntimeException("type " + type + " not managed yet.");
         }
+    }
+
+    /**
+     * One element of a glob array : either a NULL tag standing in for the sub-glob, or the glob itself.
+     * The tag has to be read here — skipGlobField treats a NULL as a field of the glob it is skipping and
+     * would run on into the next element.
+     */
+    private void skipGlobElement() {
+        int tag = readTag();
+        if (WireConstants.getTagWireType(tag) == WireConstants.Type.NULL) {
+            return;
+        }
+        // the START_GLOB is consumed, the loop below reads the fields and stops on END_GLOB
+        skipGlobField();
     }
 
     private void skipGlobField() {
