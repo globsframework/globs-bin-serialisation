@@ -4,6 +4,7 @@ import org.globsframework.core.utils.serialization.SerializedOutput;
 import org.globsframework.serialisation.glob.GlobBinWriter;
 import org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldWritersFactory;
 import org.globsframework.serialisation.glob.type.manager.DefaultGlobTypeFieldWritersManager;
+import org.globsframework.serialisation.glob.type.manager.PropertiesBasedGlobTypeFieldWritersManager;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldWritersManager;
 
 import java.io.OutputStream;
@@ -19,6 +20,11 @@ public class BinWriterFactory {
 
     public static BinWriterFactory create() {
         return new BinWriterFactory(new DefaultGlobTypeFieldWritersManager(Map.of(),
+                new DefaultGlobTypeFieldWritersFactory(new HashMap<>())));
+    }
+
+    public static BinWriterFactory createUseProperties() {
+        return new BinWriterFactory(new PropertiesBasedGlobTypeFieldWritersManager(Map.of(),
                 new DefaultGlobTypeFieldWritersFactory(new HashMap<>())));
     }
 

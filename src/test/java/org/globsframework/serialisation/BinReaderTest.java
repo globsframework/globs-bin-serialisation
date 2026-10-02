@@ -252,7 +252,7 @@ public class BinReaderTest extends TestCase {
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
-                .set(Proto1.globField, null);
+                .set(Proto1.globField, (Glob) null);
         check(withNull, withNull);
     }
 
@@ -284,7 +284,7 @@ public class BinReaderTest extends TestCase {
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
-                .set(Proto1.globArrayField, null);
+                .set(Proto1.globArrayField, (Glob[]) null);
         check(withNull, withNull);
     }
 
@@ -397,7 +397,7 @@ public class BinReaderTest extends TestCase {
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
-                .set(Proto1.globArrayField, null);
+                .set(Proto1.globArrayField, (Glob[]) null);
         check(withNull, withNull);
     }
 
@@ -415,7 +415,7 @@ public class BinReaderTest extends TestCase {
         check(p, globType.instantiate());
 
         Glob withNull = Proto1.TYPE.instantiate()
-                .set(Proto1.globArrayField, null);
+                .set(Proto1.globArrayField, (Glob[]) null);
         check(withNull, withNull);
     }
 

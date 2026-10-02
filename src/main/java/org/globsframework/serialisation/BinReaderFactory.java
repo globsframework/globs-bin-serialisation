@@ -8,8 +8,10 @@ import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.factory.DefaultGlobTypeFieldReadersFactory;
 import org.globsframework.serialisation.glob.type.manager.DefaultGlobTypeFieldReadersManager;
 import org.globsframework.serialisation.glob.type.manager.GlobTypeFieldReadersManager;
+import org.globsframework.serialisation.glob.type.manager.PropertiesBasedGlobTypeFieldReadersManager;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,9 +27,16 @@ public class BinReaderFactory {
     }
 
     public static BinReaderFactory create() {
-        final Map<GlobType, GlobTypeFieldReaders> containers = new ConcurrentHashMap<>();
+        final Map<GlobType, GlobTypeFieldReaders> containers = new HashMap<>();
         return new BinReaderFactory(
                 new DefaultGlobTypeFieldReadersManager(containers,
+                        new DefaultGlobTypeFieldReadersFactory(containers)));
+    }
+
+    public static BinReaderFactory createPropertyBased() {
+        final Map<GlobType, GlobTypeFieldReaders> containers = new HashMap<>();
+        return new BinReaderFactory(
+                new PropertiesBasedGlobTypeFieldReadersManager(containers,
                         new DefaultGlobTypeFieldReadersFactory(containers)));
     }
 

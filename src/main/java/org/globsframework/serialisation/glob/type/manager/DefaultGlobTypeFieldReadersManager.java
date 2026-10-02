@@ -4,6 +4,7 @@ import org.globsframework.core.metamodel.GlobType;
 import org.globsframework.serialisation.glob.type.GlobTypeFieldReaders;
 import org.globsframework.serialisation.glob.type.factory.GlobTypeFieldReadersFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultGlobTypeFieldReadersManager implements GlobTypeFieldReadersManager {
@@ -12,7 +13,7 @@ public class DefaultGlobTypeFieldReadersManager implements GlobTypeFieldReadersM
 
     public DefaultGlobTypeFieldReadersManager(Map<GlobType, GlobTypeFieldReaders> preInitMap,
                                               GlobTypeFieldReadersFactory globTypeFieldReadersFactory) {
-        this.preInitMap = preInitMap;
+        this.preInitMap = new HashMap<>(preInitMap);
         this.globTypeFieldReadersFactory = globTypeFieldReadersFactory;
     }
 

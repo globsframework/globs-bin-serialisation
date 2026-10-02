@@ -36,6 +36,10 @@ public interface GlobTypeFieldWritersManager {
         public GlobTypeFieldWritersManager build() {
             return new DefaultGlobTypeFieldWritersManager(new HashMap<>(containers), globTypeFieldWritersFactory);
         }
+
+        public GlobTypeFieldWritersManager buildPropertiesBased() {
+            return new PropertiesBasedGlobTypeFieldWritersManager(containers, globTypeFieldWritersFactory);
+        }
     }
 
 }

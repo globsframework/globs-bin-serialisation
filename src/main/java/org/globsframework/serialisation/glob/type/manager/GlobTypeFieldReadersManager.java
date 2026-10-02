@@ -34,7 +34,11 @@ public interface GlobTypeFieldReadersManager {
         }
 
         public GlobTypeFieldReadersManager build() {
-            return new DefaultGlobTypeFieldReadersManager(new HashMap<>(containers), globTypeFieldReadersFactory);
+            return new DefaultGlobTypeFieldReadersManager(containers, globTypeFieldReadersFactory);
+        }
+
+        public GlobTypeFieldReadersManager buildPropertiesBased() {
+            return new PropertiesBasedGlobTypeFieldReadersManager(containers, globTypeFieldReadersFactory);
         }
     }
 }
